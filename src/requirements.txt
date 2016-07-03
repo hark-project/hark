@@ -1,0 +1,4 @@
+asyncio==3.4.3
+click==6.6
+requests==2.10.0
+typing==3.5.2.2

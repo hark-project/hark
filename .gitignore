@@ -1,0 +1,8 @@
+src/*.egg-info
+src/.eggs
+src/.tox
+src/build
+src/dist
+
+*.pyc
+*.swp
