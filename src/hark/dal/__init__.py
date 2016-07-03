@@ -97,11 +97,7 @@ class DAL(object):
             self._db.execute(query, bindings)
             self._db.commit()
         except sqlite3.IntegrityError as e:
-            expect = '%s.%s' % (ins.table, ins.key)
-            if expect in str(e):
-                raise DuplicateModelException(ins)
-            else:
-                raise e
+            raise DuplicateModelException(ins)
 
     def read(
             self, cls,
