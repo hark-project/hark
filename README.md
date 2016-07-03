@@ -1,5 +1,7 @@
 # hark
 
+[![Build Status](https://travis-ci.org/ceralena/hark.svg?branch=develop)](https://travis-ci.org/ceralena/hark)
+
 **Please Note**: This project is a work in progress. It's only barely
 functional and unlikely to be useful yet.
 
