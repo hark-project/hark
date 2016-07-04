@@ -29,9 +29,6 @@ class LocalClient(object):
         m = self.dal().read(Machine, constraints={"name": name})
         if len(m) == 0:
             raise hark.exceptions.MachineNotFound
-        elif len(m) > 1:
-            # TODO(cera) - Name this exception.
-            raise Exception("More than one machine found for name " + name)
         return m[0]
 
     def images(self) -> List[Image]:
