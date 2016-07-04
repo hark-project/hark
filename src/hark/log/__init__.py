@@ -27,7 +27,7 @@ logger.addHandler(tempFileHandler)
 
 
 def setLevel(level):
-    streamHandler.setLevel(level)
+    streamHandler.setLevel(level.upper())
 
 
 def setOutputFile(filename):
