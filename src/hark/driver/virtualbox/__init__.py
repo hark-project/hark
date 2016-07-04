@@ -1,10 +1,12 @@
 import re
 from typing import List
 
-from .. import base
+import hark.exceptions
 from hark.lib.command import Command, Result
 from hark.models.port_mapping import PortMapping
 import hark.log as log
+
+from .. import base
 
 
 class Driver(base.BaseDriver):
@@ -12,15 +14,50 @@ class Driver(base.BaseDriver):
     versionArg = '-v'
 
     def _run(self, cmd) -> Result:
+        # copy the list before mutating it
+        cmd = list(cmd)
+        # insert the binary name
         cmd.insert(0, self.cmd)
+        # run it
         return Command(*cmd).assertRun()
 
     def create(self, baseImagePath) -> None:
         log.debug("virtualbox: Creating machine '%s'", self._name())
         log.debug("virtualbox: base image will be '%s'", baseImagePath)
-        cmds = self._createCommands(baseImagePath)
+        cmds = self._createCommands()
         for cmd in cmds:
             self._run(cmd)
+        self._attachStorage(baseImagePath)
+
+    def _attachStorage(self, baseImagePath: str) -> None:
+        name = self._name()
+        self._run([
+            'storagectl', name, '--name', 'sata1', '--add', 'sata'
+        ])
+        attachCommand = [
+            'storageattach', name, '--storagectl', 'sata1',
+            '--port', '0',
+            '--device', '0',
+            '--type', 'hdd',
+            '--medium', baseImagePath,
+            '--mtype', 'multiattach',
+        ]
+        try:
+            self._run(attachCommand)
+        except hark.exceptions.CommandFailed as e:
+            # If we get an error saying the medium is locked for reading by
+            # another task, it means that we don't need to specify multiattach
+            # - it's only actually required the first time we attach this
+            # medium to a machine.
+            stderr = e.result.stderr
+            if 'is locked for reading by another task' not in stderr:
+                raise e
+        else:
+            return
+
+        # remove the last two arguments and try again
+        attachCommand = attachCommand[:len(attachCommand)-2]
+        self._run(attachCommand)
 
     def _name(self) -> str:
         return self.machine['name']
@@ -47,7 +84,7 @@ class Driver(base.BaseDriver):
             cmd = self._modifyvm('--natpf1', fpm)
             self._run(cmd)
 
-    def _createCommands(self, baseImagePath: str) -> List[List[str]]:
+    def _createCommands(self) -> List[List[str]]:
         name = self._name()
         mod = self._modifyvm
         cmds = (
@@ -70,18 +107,6 @@ class Driver(base.BaseDriver):
             mod('--nictype1', 'virtio'),
             mod('--nictype2', 'virtio'),
 
-            ['storagectl', name, '--name', 'IDE Controller', '--add', 'ide'],
-            [
-                'storageattach', name, '--storagectl', 'IDE Controller',
-                '--port', '0',
-                '--device', '0',
-                '--type', 'hdd',
-                '--medium', baseImagePath,
-
-                # --mtype tells virtualbox to copy-on-write from the base image
-                # instead of mutating it
-                '--mtype', 'multiattach'
-            ],
         )
 
         return cmds

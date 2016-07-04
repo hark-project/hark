@@ -2,11 +2,14 @@ import click
 import sys
 
 from hark.cli.util import (
-    driverOption, getMachine, guestOption, modelsWithHeaders
+    driverOption, guestOption,
+    modelsWithHeaders,
+    getMachine, getSSHMapping,
 )
 from hark.client import LocalClient
 from hark.context import Context
 import hark.driver
+import hark.guest
 import hark.exceptions
 import hark.log as logger
 from hark.models.machine import MEMORY_MINIMUM
@@ -99,7 +102,7 @@ def new(client, **kwargs):
     # Set up an SSH port mapping for this machine
     # We need to find a free port that is not used by any other machines.
     mappings = client.portMappings()
-    used_host_ports = [m['host_port'] for m in mappings]
+    used_host_ports = [mp['host_port'] for mp in mappings]
     host_port = hark.util.get_free_port(exclude=used_host_ports)
     guest_port = 22
     mapping = PortMapping(

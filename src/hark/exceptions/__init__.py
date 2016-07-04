@@ -38,8 +38,8 @@ class CommandFailed(Exception):
     def __init__(self, command, result):
         self.command = command
         self.result = result
-        msg = 'Command "%s" had exit_status %d' % (
-            command.cmd, result.exit_status)
+        msg = "Command '%s' had exit_status %d and stderr: '%s'" % (
+            command.cmd, result.exit_status, result.stderr)
         Exception.__init__(self, msg)
 
 
