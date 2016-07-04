@@ -17,7 +17,7 @@ class Machine(SQLModel):
         # Use parent validation first
         SQLModel.validate(self)
 
-        if self['memory_mb'] < 128:
+        if self['memory_mb'] < MEMORY_MINIMUM:
             raise InvalidMachineException("Machine cannot have <128mb memory")
 
     @classmethod
