@@ -12,7 +12,14 @@ def hark_ssh_keys() -> Tuple[str, str]:
     return (os.path.join(keydir, k) for k in keys)
 
 
-def _ssh_command_args(port, user='hark') -> List[str]:
+def check_ssh(port, user='hark') -> bool:
+    "Return whether SSH is available"
+    cmd = RemoteShellCommand("true", port)
+    ret = cmd.run()
+    return ret.exit_status == 0
+
+
+def _ssh_command_args(port, user) -> List[str]:
         private_key_path, _ = hark_ssh_keys()
 
         cmd = [
@@ -33,8 +40,8 @@ def _ssh_command_args(port, user='hark') -> List[str]:
 class RemoteShellCommand(Command):
     "Run a shell script remotely on a machine over SSH."
 
-    def __init__(self, cmd: str, port: int) -> None:
-        sshCmd = _ssh_command_args(port)
+    def __init__(self, cmd: str, port: int, user: str='hark') -> None:
+        sshCmd = _ssh_command_args(port, user)
         Command.__init__(
             self, *sshCmd,
             stdin=cmd)
@@ -47,5 +54,5 @@ class InterativeSSHCommand(TerminalCommand):
         if hark.lib.platform.isWindows():
             raise hark.exceptions.NotImplemented("SSH on windows")
 
-        cmd = _ssh_command_args(port)
+        cmd = _ssh_command_args(port, user)
         TerminalCommand.__init__(self, *cmd)

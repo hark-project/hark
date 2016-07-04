@@ -1,5 +1,6 @@
 import click
 import sys
+import time
 
 from hark.cli.util import (
     driverOption, guestOption,
@@ -54,7 +55,7 @@ def machine_list(client):
 
 
 @vm.command()
-@click.pass_obj
+@click.pass_context
 @click.option(
     "--name", type=str,
     prompt="New machine name", help="The name of the machine")
@@ -63,11 +64,13 @@ def machine_list(client):
 @click.option(
     "--memory_mb", type=click.IntRange(MEMORY_MINIMUM),
     prompt="Memory (MB)", help="Memory allocated to the machine in MB")
-def new(client, **kwargs):
+def new(ctx, **kwargs):
     "Create a new hark machine"
     from hark.cli.util import findImage
     from hark.models.machine import Machine
     from hark.models.port_mapping import PortMapping
+
+    client = ctx.obj
 
     # Create and validate the machine model.
     m = Machine.new(**{f: kwargs[f] for f in Machine.fields if f in kwargs})
@@ -120,6 +123,26 @@ def new(client, **kwargs):
 
     # Save the mapping in the DAL
     client.createPortMapping(mapping)
+
+    # Now wait until the machine is running and run the setup script
+    click.secho('Done.', fg='green')
+
+    if not click.confirm('Start the machine and run the setup script?'):
+        click.secho(
+            'You should run the setup script manually when you start '
+            'the machine, with these commands:', fg='red')
+        click.secho('\thark vm start --name %s' % m['name'])
+        click.secho('\thark vm setup --name %s' % m['name'])
+        return
+
+    ctx.invoke(start, name=m['name'], gui=False)
+    click.secho("Waiting for SSH to be available", fg='green')
+    while True:
+        click.secho('.', fg='green')
+        time.sleep(1)
+        if hark.ssh.check_ssh(host_port):
+            break
+    ctx.invoke(setup, name=m['name'])
 
 
 @vm.command()
