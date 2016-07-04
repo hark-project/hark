@@ -77,3 +77,14 @@ def getMachine(client, name):
     except MachineNotFound:
         click.secho("Machine not found: " + name, fg='red')
         sys.exit(1)
+
+
+def getSSHMapping(client, machine):
+    mappings = client.portMappings(
+        name='ssh', machine_id=machine['machine_id'])
+    if len(mappings) == 0:
+        click.secho(
+            "Could not find any configured ssh port mapping for machine '%s'"
+            % machine['name'], fg='red')
+        sys.exit(1)
+    return mappings[0]

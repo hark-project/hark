@@ -120,6 +120,21 @@ def new(client, **kwargs):
     # Save the mapping in the DAL
     client.createPortMapping(mapping)
 
+
+@vm.command()
+@click.pass_obj
+@click.option(
+    "--name", type=str,
+    prompt="Machine name", help="The name of the machine")
+def setup(client, name):
+    "Run the setup script for a machine"
+    m = getMachine(client, name)
+    setup_script = hark.guest.guest_config(m['guest']).setup_script(m)
+    mapping = getSSHMapping(client, m)
+    click.secho(
+        "Running machine setup script for '%s'" % name, fg='green')
+    cmd = hark.ssh.RemoteShellCommand(setup_script, mapping['host_port'])
+    cmd.assertRun()
     click.secho('Done.', fg='green')
 
 
@@ -234,14 +249,9 @@ def ssh(client, name=None):
     "Connect to a machine over SSH"
     m = getMachine(client, name)
 
-    mappings = client.portMappings(name='ssh', machine_id=m['machine_id'])
-    if len(mappings) == 0:
-        click.secho(
-            "Could not find any configured ssh port mapping for machine '%s'"
-            % name, fg='red')
-        sys.exit(1)
+    mapping = getSSHMapping(client, m)
 
-    cmd = hark.ssh.InterativeSSHCommand(mappings[0]['host_port'])
+    cmd = hark.ssh.InterativeSSHCommand(mapping['host_port'])
     cmd.run()
 
 if __name__ == '__main__':

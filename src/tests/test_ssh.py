@@ -15,6 +15,15 @@ class TestHarkSSHKeys(unittest.TestCase):
         assert os.path.exists(public)
 
 
+class TestRemoteShellCommand(unittest.TestCase):
+
+    def test_remote_shell_command(self):
+        script = "ls /; echo 'hi!'"
+        cmd = hark.ssh.RemoteShellCommand(script, 2222)
+        assert cmd.stdin == script
+        assert 'ssh' in cmd.cmd
+
+
 class TestInterativeSSHCommand(unittest.TestCase):
 
     @patch('hark.lib.command.TerminalCommand.__init__')

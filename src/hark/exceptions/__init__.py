@@ -30,6 +30,10 @@ class DuplicateModelException(Exception):
         Exception.__init__(self, msg)
 
 
+class UnknownGuestException(Exception):
+    pass
+
+
 class UnknownDriverException(Exception):
     pass
 
