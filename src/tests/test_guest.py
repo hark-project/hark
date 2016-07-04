@@ -1,5 +1,6 @@
 import unittest
 
+import hark.exceptions
 import hark.guest
 from hark.models.machine import Machine
 
@@ -13,6 +14,13 @@ class TestGuest(unittest.TestCase):
 
 
 class TestSetupScript(unittest.TestCase):
+
+    def test_guest_config(self):
+        hark.guest.guest_config('Debian-8')
+
+        self.assertRaises(
+            hark.exceptions.UnknownGuestException,
+            hark.guest.guest_config, 'fjdklsjfsldj')
 
     def test_setup_script(self):
         machine = Machine(

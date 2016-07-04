@@ -7,6 +7,7 @@ from hark.models.port_mapping import PortMapping
 import hark.log as log
 
 from .. import base
+from .. import status
 
 
 class Driver(base.BaseDriver):
@@ -20,6 +21,27 @@ class Driver(base.BaseDriver):
         cmd.insert(0, self.cmd)
         # run it
         return Command(*cmd).assertRun()
+
+    def status(self):
+        state = self._vmInfo()['VMState']
+        if state == 'running':
+            return status.RUNNING
+        elif state == 'poweroff':
+            return status.STOPPED
+        elif state == 'aborted':
+            return status.ABORTED
+        elif state == 'paused':
+            return status.PAUSED
+        else:
+            raise hark.exceptions.UnrecognisedMachineState(state)
+
+    def _vmInfo(self):
+        res = self._run(['showvminfo', self._name(), '--machinereadable'])
+        vmInfo = {}
+        for line in res.stdout.splitlines():
+            k, v = line.split("=", 1)
+            vmInfo[k] = v.strip('"')
+        return vmInfo
 
     def create(self, baseImagePath) -> None:
         log.debug("virtualbox: Creating machine '%s'", self._name())

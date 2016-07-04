@@ -53,3 +53,7 @@ class MachineNotFound(Exception):
 
 class ImageNotFound(Exception):
     pass
+
+
+class UnrecognisedMachineState(Exception):
+    pass

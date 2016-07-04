@@ -3,10 +3,14 @@ import uuid
 
 import hark.driver
 import hark.driver.base
+import hark.driver.status
 import hark.exceptions
 import hark.models.machine
 from hark.lib.command import which
 
+class TestStatus(unittest.TestCase):
+    def test_status_str(self):
+        assert str(hark.driver.status.RUNNING) == 'running'
 
 class TestDriverWrapper(unittest.TestCase):
 

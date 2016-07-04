@@ -9,6 +9,7 @@ from hark.cli.util import (
 from hark.client import LocalClient
 from hark.context import Context
 import hark.driver
+from hark.driver.status import RUNNING
 import hark.guest
 import hark.exceptions
 import hark.log as logger
@@ -248,8 +249,18 @@ def image_list(client):
 def ssh(client, name=None):
     "Connect to a machine over SSH"
     m = getMachine(client, name)
-
+    d = hark.driver.get_driver(m['driver'], m)
     mapping = getSSHMapping(client, m)
+
+    status = d.status()
+
+    if status != RUNNING:
+        click.secho(
+            "Cannot SSH: Machine status is '%s', needs to be '%s'"
+            % (status, RUNNING), fg='red')
+        click.secho(
+            "Try starting the machine first with 'hark vm start'", fg='red')
+        sys.exit(1)
 
     cmd = hark.ssh.InterativeSSHCommand(mapping['host_port'])
     cmd.run()
