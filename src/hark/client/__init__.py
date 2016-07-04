@@ -19,9 +19,10 @@ class LocalClient(object):
             return f.read()
 
     def machines(self) -> List[Machine]:
+        "Get all machines"
         return self.dal().read(Machine)
 
-    def createMachine(self, machine: Machine):
+    def createMachine(self, machine: Machine) -> None:
         log.debug('Saving machine: %s', machine.json())
         self.dal().create(machine)
 

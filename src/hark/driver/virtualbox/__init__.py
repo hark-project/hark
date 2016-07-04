@@ -11,21 +11,21 @@ class Driver(base.BaseDriver):
     cmd = 'VBoxManage'
     versionArg = '-v'
 
-    def _run(self, cmd):
+    def _run(self, cmd) -> Result:
         cmd.insert(0, self.cmd)
         return Command(*cmd).assertRun()
 
-    def create(self, baseImagePath):
+    def create(self, baseImagePath) -> None:
         log.debug("virtualbox: Creating machine '%s'", self._name())
         log.debug("virtualbox: base image will be '%s'", baseImagePath)
         cmds = self._createCommands(baseImagePath)
         for cmd in cmds:
             self._run(cmd)
 
-    def _name(self):
+    def _name(self) -> str:
         return self.machine['name']
 
-    def start(self, gui=False):
+    def start(self, gui=False) -> None:
         log.debug("virtualbox: Starting machine '%s'", self._name())
 
         if gui:
@@ -36,7 +36,7 @@ class Driver(base.BaseDriver):
         cmd = ['startvm', self._name(), '--type', uiType]
         self._run(cmd)
 
-    def stop(self):
+    def stop(self) -> None:
         log.debug("virtualbox: Stopping machine '%s'", self._name())
         cmd = self._controlvm('acpipowerbutton')
         self._run(cmd)
