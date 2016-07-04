@@ -1,7 +1,9 @@
+import sys
 import unittest
+from unittest.mock import patch
 
 import hark.exceptions
-from hark.lib.command import which, Command, Result, run_all
+from hark.lib.command import which, Command, Result, TerminalCommand, run_all
 
 
 class TestWhich(unittest.TestCase):
@@ -55,3 +57,17 @@ class TestCommand(unittest.TestCase):
         self.assertRaises(hark.exceptions.CommandFailed, c.assertRun)
         c = Command("true")
         assert c.assertRun().exit_status == 0
+
+
+class TestTerminalCommand(unittest.TestCase):
+
+    @patch('subprocess.Popen')
+    def test_terminal_command(self, mockPopen):
+        mockInstance = mockPopen.return_value
+        mockInstance.wait.return_value = 1
+
+        cmd = TerminalCommand(['ls', '/tmp'])
+        ret = cmd.run()
+
+        assert ret == 1
+        assert mockPopen.called_with(cmd, sys.stdin, sys.stdout, sys.stderr)

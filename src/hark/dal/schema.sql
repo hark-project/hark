@@ -7,3 +7,10 @@ CREATE TABLE machine (
 
 	CONSTRAINT unique_name UNIQUE (name)
 );
+
+CREATE TABLE port_mapping (
+	host_port INTEGER PRIMARY KEY,
+	guest_port INTEGER,
+	machine_id char(36),
+	name varchar(255)
+);

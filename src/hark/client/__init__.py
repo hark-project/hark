@@ -4,6 +4,7 @@ import hark.exceptions
 import hark.log as log
 from hark.models.image import Image
 from hark.models.machine import Machine
+from hark.models.port_mapping import PortMapping
 
 
 class LocalClient(object):
@@ -30,6 +31,20 @@ class LocalClient(object):
         if len(m) == 0:
             raise hark.exceptions.MachineNotFound
         return m[0]
+
+    def portMappings(self, name=None, machine_id=None) -> List[PortMapping]:
+        "Get all port mappings"
+        constraints = {}
+        if name is not None:
+            constraints['name'] = name
+        if machine_id is not None:
+            constraints['machine_id'] = machine_id
+
+        return self.dal().read(PortMapping, constraints=constraints)
+
+    def createPortMapping(self, mapping: PortMapping) -> None:
+        log.debug('Saving port mapping: %s', mapping)
+        self.dal().create(mapping)
 
     def images(self) -> List[Image]:
         "Return the list of locally cached images"

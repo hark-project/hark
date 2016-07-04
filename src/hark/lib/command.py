@@ -1,9 +1,12 @@
 import asyncio
 from asyncio.subprocess import PIPE as AIOPIPE
-from subprocess import Popen, PIPE
+from subprocess import PIPE
+import subprocess
+import sys
 from typing import List
 
 import hark.exceptions
+import hark.log
 
 from . import platform
 
@@ -11,7 +14,7 @@ from . import platform
 def which(cmd):
     "find the full path to a command; return None if not found"
     if platform.isWindows():
-        raise hark.exceptions.NotImplemented()
+        raise hark.exceptions.NotImplemented("which() on windows")
     c = Command("which", cmd)
     res = c.run()
     if res.exit_status != 0:
@@ -40,7 +43,8 @@ class Command(object):
 
     def run(self) -> Result:
         "Run this command and return a Result object"
-        proc = Popen(
+        hark.log.debug("Running command: %s", self.cmd)
+        proc = subprocess.Popen(
             self.cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
         out, err = proc.communicate(self.stdin.encode('utf-8'))
@@ -69,6 +73,27 @@ class Command(object):
         status = yield from proc.wait()
 
         return Result(self.cmd, status, out, err)
+
+
+class TerminalCommand(object):
+    "A command that will be attached to the terminal"
+    def __init__(
+            self, *cmd: List[str],
+            stdin=sys.stdin,
+            stdout=sys.stdout,
+            stderr=sys.stderr):
+        self.cmd = cmd
+        self.stdin = stdin
+        self.stdout = stdout
+        self.stderr = stderr
+
+    def run(self) -> None:
+        "Run this command interactively. Return its exit status."
+        hark.log.debug("Running command attached to terminal: %s", self.cmd)
+        proc = subprocess.Popen(
+            self.cmd,
+            stdin=self.stdin, stdout=self.stdout, stderr=self.stderr)
+        return proc.wait()
 
 
 def run_all(*commands: List[Command]) -> List[Result]:

@@ -1,11 +1,17 @@
 import click
 import sys
 
-from hark.cli.util import driverOption, guestOption, modelsWithHeaders
+from hark.cli.util import (
+    driverOption, getMachine, guestOption, modelsWithHeaders
+)
 from hark.client import LocalClient
 from hark.context import Context
+import hark.driver
+import hark.exceptions
 import hark.log as logger
 from hark.models.machine import MEMORY_MINIMUM
+import hark.ssh
+import hark.util
 
 
 @click.group(name='hark')
@@ -56,21 +62,24 @@ def machine_list(client):
 def new(client, **kwargs):
     "Create a new hark machine"
     from hark.cli.util import findImage
-    import hark.driver
     from hark.models.machine import Machine
-    import hark.exceptions
+    from hark.models.port_mapping import PortMapping
 
+    # Create and validate the machine model.
     m = Machine.new(**{f: kwargs[f] for f in Machine.fields if f in kwargs})
     m.validate()
 
+    # See if we have the specified image
     try:
         image = findImage(client.images(), kwargs['driver'], kwargs['guest'])
+        baseImagePath = client.imagePath(image)
     except hark.exceptions.ImageNotFound as e:
         # TODO(cera) - don't just fail here
         click.secho('Image not found locally: %s' % e, fg='red')
         sys.exit(1)
 
-    # See if we have the specified image
+    # Get a driver for this machine
+    d = hark.driver.get_driver(kwargs['driver'], m)
 
     # Save it in the DAL.
     # This will identify duplicates before we attempt to create the machine.
@@ -82,12 +91,32 @@ def new(client, **kwargs):
             fg='red')
         sys.exit(1)
 
-    baseImagePath = client.imagePath(image)
-    d = hark.driver.get_driver(kwargs['driver'], m)
-
-    click.echo('Creating machine:')
-    click.secho(m.json(indent=4))
+    # Create the machine
+    click.secho('Creating machine:', fg='green')
+    click.echo(m.json(indent=4))
     d.create(baseImagePath)
+
+    # Set up an SSH port mapping for this machine
+    # We need to find a free port that is not used by any other machines.
+    mappings = client.portMappings()
+    used_host_ports = [m['host_port'] for m in mappings]
+    host_port = hark.util.get_free_port(exclude=used_host_ports)
+    guest_port = 22
+    mapping = PortMapping(
+        host_port=host_port,
+        guest_port=guest_port,
+        machine_id=m['machine_id'],
+        name='ssh')
+
+    click.secho('Configuring ssh port mapping:', fg='green')
+    click.echo(mapping.json(indent=4))
+
+    # Create the mapping in the driver
+    d.setPortMappings([mapping])
+
+    # Save the mapping in the DAL
+    client.createPortMapping(mapping)
+
     click.secho('Done.', fg='green')
 
 
@@ -102,22 +131,17 @@ def new(client, **kwargs):
 def start(client, name, gui):
     "Start a machine"
 
-    import hark.driver
-    import hark.exceptions
-
-    try:
-        m = client.getMachine(name)
-    except hark.exceptions.MachineNotFound:
-        click.secho("Machine not found: " + name, fg='red')
-        sys.exit(1)
+    m = getMachine(client, name)
 
     click.echo('Starting machine: ' + name)
 
-    # TODO(cera) - final arg
     d = hark.driver.get_driver(m['driver'], m)
 
     d.start(gui=gui)
     click.secho('Done.', fg='green')
+    click.secho(
+        "Run 'hark ssh --name %s' to connect to the machine" % name,
+        fg='green')
 
 
 @vm.command()
@@ -128,14 +152,7 @@ def start(client, name, gui):
 def stop(client, name):
     "Stop a machine"
 
-    import hark.driver
-    import hark.exceptions
-
-    try:
-        m = client.getMachine(name)
-    except hark.exceptions.MachineNotFound:
-        click.secho("Machine not found: " + name, fg='red')
-        sys.exit(1)
+    m = getMachine(client, name)
 
     click.echo('Stopping machine: ' + name)
 
@@ -143,6 +160,18 @@ def stop(client, name):
 
     d.stop()
     click.secho('Done.', fg='green')
+
+
+@vm.command()
+@click.pass_obj
+def mappings(client):
+    "Show all configured port mappings"
+
+    mappings = client.portMappings()
+    click.secho(
+        "vm mappings: found %d configured port mappings" % len(mappings),
+        fg='green')
+    click.echo(modelsWithHeaders(mappings))
 
 
 @hark_main.command()
@@ -192,6 +221,25 @@ def image_list(client):
         "image list: found %d cached hark images" % len(images), fg='green')
     click.echo(modelsWithHeaders(images))
 
+
+@hark_main.command()
+@click.pass_obj
+@click.option(
+    "--name", type=str, required=True,
+    prompt="Machine name", help="The name of the machine")
+def ssh(client, name=None):
+    "Connect to a machine over SSH"
+    m = getMachine(client, name)
+
+    mappings = client.portMappings(name='ssh', machine_id=m['machine_id'])
+    if len(mappings) == 0:
+        click.secho(
+            "Could not find any configured ssh port mapping for machine '%s'"
+            % name, fg='red')
+        sys.exit(1)
+
+    cmd = hark.ssh.InterativeSSHCommand(mappings[0]['host_port'])
+    cmd.run()
 
 if __name__ == '__main__':
     hark_main()

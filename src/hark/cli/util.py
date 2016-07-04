@@ -1,10 +1,11 @@
 import click
 import io
+import sys
 from typing import List
 
 import hark.driver
 import hark.guest
-from hark.exceptions import ImageNotFound
+from hark.exceptions import ImageNotFound, MachineNotFound
 from hark.models import BaseModel
 from hark.models.image import Image
 
@@ -67,3 +68,12 @@ def findImage(images: List[Image], driver: str, guest: str) -> Image:
         raise ImageNotFound(
             "no local image for driver '%s' and guest: '%s'" % (driver, guest))
     return im[-1]
+
+
+def getMachine(client, name):
+    try:
+        m = client.getMachine(name)
+        return m
+    except MachineNotFound:
+        click.secho("Machine not found: " + name, fg='red')
+        sys.exit(1)

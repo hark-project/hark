@@ -1,15 +1,15 @@
 import unittest
 
+from hark.exceptions import (
+    ModelInvalidException,
+    InvalidMachineException
+)
 from hark.models import (
     BaseModel,
     SQLModel,
 )
 from hark.models.machine import Machine
-
-from hark.exceptions import (
-    ModelInvalidException,
-    InvalidMachineException
-)
+from hark.models.port_mapping import PortMapping
 
 
 class TestBaseModel(unittest.TestCase):
@@ -96,3 +96,12 @@ class TestMachine(unittest.TestCase):
         assert len(m['machine_id']) == 8
         m2 = Machine.new(name='foo', driver='bar', guest='bang')
         assert m2['machine_id'] == m['machine_id']
+
+
+class TestPortMapping(unittest.TestCase):
+    def test_port_mapping_virtualbox(self):
+        pm = PortMapping(
+            host_port=11, guest_port=22, machine_id='blah', name='bleh')
+        pm.validate()
+        expect = 'bleh,tcp,127.0.0.1,11,,22'
+        assert pm.format_virtualbox() == expect

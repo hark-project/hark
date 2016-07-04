@@ -1,7 +1,9 @@
 import re
+from typing import List
 
 from .. import base
-from hark.lib.command import Command
+from hark.lib.command import Command, Result
+from hark.models.port_mapping import PortMapping
 import hark.log as log
 
 
@@ -39,7 +41,13 @@ class Driver(base.BaseDriver):
         cmd = self._controlvm('acpipowerbutton')
         self._run(cmd)
 
-    def _createCommands(self, baseImagePath):
+    def setPortMappings(self, mappings: List[PortMapping]) -> None:
+        for pm in mappings:
+            fpm = pm.format_virtualbox()
+            cmd = self._modifyvm('--natpf1', fpm)
+            self._run(cmd)
+
+    def _createCommands(self, baseImagePath: str) -> List[List[str]]:
         name = self._name()
         mod = self._modifyvm
         cmds = (

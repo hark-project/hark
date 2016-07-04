@@ -6,6 +6,7 @@ from hark.exceptions import (
         InvalidQueryConstraint,
         DuplicateModelException
 )
+import hark.log
 from hark.models import (
     SQLModel
 )
@@ -58,7 +59,7 @@ class DAL(object):
     def _read_query(self, cls, constraints=None) -> str:
         tmpl = "SELECT %s FROM %s%s;"
         fields = ", ".join(cls.fields)
-        if constraints is not None:
+        if constraints is not None and len(constraints) > 0:
             formatted = self._format_constraints(constraints)
             cons_str = ' WHERE ' + " AND ".join(formatted)
         else:
@@ -87,7 +88,8 @@ class DAL(object):
 
     def _setup(self) -> None:
         "Set up the schema"
-        self._db.execute(hark_schema())
+        hark.log.info("Setting up DB schema: %s", self.path)
+        self._db.executescript(hark_schema())
         self._db.commit()
 
     def create(self, ins: SQLModel) -> None:
