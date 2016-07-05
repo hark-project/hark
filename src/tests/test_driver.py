@@ -23,7 +23,7 @@ class TestDriverWrapper(unittest.TestCase):
         assert len(d) > 0
 
     def testGetDriver(self):
-        m = hark.models.machine.Machine.new()
+        m = hark.models.machine.Machine.new(guest='Debian-8')
         d = hark.driver.get_driver('virtualbox', m)
         assert isinstance(d, hark.driver.base.BaseDriver)
 

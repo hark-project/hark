@@ -112,16 +112,13 @@ class Driver(base.BaseDriver):
         cmds = (
             ['createvm', '--name', name,   '--register'],
 
-            # TODO(cera)
-            # mod('--ostype', self.machine.os_type()),
+            mod('--ostype', self.guest_config.virtualbox_os_type()),
 
             mod('--acpi', 'on'),
             mod('--ioapic', 'on'),
             mod('--memory', str(self.machine['memory_mb'])),
 
             mod('--nic1', 'nat'),
-            # TODO(cera)
-
             mod(
                 '--nic2', 'hostonly',
                 '--hostonlyadapter2', self._host_only_interface()),

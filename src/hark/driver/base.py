@@ -1,3 +1,4 @@
+import hark.guest
 from hark.lib.command import which, Command
 
 
@@ -5,6 +6,7 @@ class BaseDriver(object):
 
     def __init__(self, machine):
         self.machine = machine
+        self.guest_config = hark.guest.guest_config(machine['guest'])
 
     @classmethod
     def commandPath(cls):

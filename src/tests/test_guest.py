@@ -6,22 +6,24 @@ from hark.models.machine import Machine
 
 
 class TestGuest(unittest.TestCase):
-
-    def testListGuests(self):
+    def test_list_guests(self):
         g = hark.guest.guests()
         assert isinstance(g, list)
         assert len(g) > 0
 
 
-class TestSetupScript(unittest.TestCase):
-
+class TestGuestConfig(unittest.TestCase):
     def test_guest_config(self):
-        hark.guest.guest_config('Debian-8')
+        cfg = hark.guest.guest_config('Debian-8')
+
+        assert cfg.virtualbox_os_type() == 'Debian_64'
 
         self.assertRaises(
             hark.exceptions.UnknownGuestException,
             hark.guest.guest_config, 'fjdklsjfsldj')
 
+
+class TestSetupScript(unittest.TestCase):
     def test_setup_script(self):
         machine = Machine(
             machine_id='a', name='blahh',

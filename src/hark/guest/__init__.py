@@ -12,14 +12,21 @@ sudo hostname -F /etc/hostname
 
 
 class GuestConfig(object):
-    def __init__(self, setup_script_template) -> None:
+    def __init__(
+               self,
+               setup_script_template: str,
+               virtualbox_os_type: str) -> None:
         self.setup_script_template = setup_script_template
+        self._virtualbox_os_type = virtualbox_os_type
 
     def setup_script(self, machine: Machine) -> str:
         return self.setup_script_template.format(**machine)
 
+    def virtualbox_os_type(self) -> str:
+        return self._virtualbox_os_type
+
 _guests = {
-    'Debian-8': GuestConfig(_setupScriptTmpl_Debian),
+    'Debian-8': GuestConfig(_setupScriptTmpl_Debian, 'Debian_64'),
 }
 
 
