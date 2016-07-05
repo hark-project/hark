@@ -30,12 +30,26 @@ class DuplicateModelException(Exception):
         Exception.__init__(self, msg)
 
 
+class UnknownPlatformException(Exception):
+    def __init__(self, platform: str) -> None:
+        msg = 'Hark does not understand this value for sys.platform: ' \
+            + platform
+        Exception.__init__(self, msg)
+
+
 class UnknownGuestException(Exception):
     pass
 
 
 class UnknownDriverException(Exception):
     pass
+
+
+class UnsupportedDriverException(Exception):
+    def __init__(self, platform: str, driver: str):
+        msg = "Your platform - '%s' - does not support the driver '%s'" \
+            % (platform, driver)
+        Exception.__init__(self, msg)
 
 
 class CommandFailed(Exception):

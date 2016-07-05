@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 import uuid
 
 import hark.driver
@@ -29,6 +30,14 @@ class TestDriverWrapper(unittest.TestCase):
         self.assertRaises(
             hark.exceptions.UnknownDriverException,
             hark.driver.get_driver, 'bla blah', m)
+
+    @patch('hark.lib.platform.platform')
+    def testGetDriverUnsupported(self, mockPlatform):
+        mockPlatform.return_value = 'darwin'
+        m = hark.models.machine.Machine.new()
+        self.assertRaises(
+            hark.exceptions.UnsupportedDriverException,
+            hark.driver.get_driver, 'qemu', m)
 
     def testIsAvailable(self):
         class Mock1(hark.driver.base.BaseDriver):
