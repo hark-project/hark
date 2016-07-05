@@ -16,6 +16,13 @@ class TestWhich(unittest.TestCase):
         path = which('fhdljhfdjdfkljsd')
         assert path is None
 
+    @patch('hark.lib.platform.platform')
+    def test_which_windows(self, mockPlatform):
+        mockPlatform.return_value = 'win32'
+        self.assertRaises(
+            hark.exceptions.NotImplemented,
+            which, 'true')
+
 
 class TestCommand(unittest.TestCase):
     def test_command_result_true_false(self):

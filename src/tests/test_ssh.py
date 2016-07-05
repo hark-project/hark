@@ -2,6 +2,8 @@ import os
 import unittest
 from unittest.mock import patch
 
+import hark.exceptions
+from hark.lib.command import Result
 import hark.ssh
 
 
@@ -13,6 +15,17 @@ class TestHarkSSHKeys(unittest.TestCase):
         assert public.endswith('hark.pub')
         assert os.path.exists(private)
         assert os.path.exists(public)
+
+
+class TestCheckSSH(unittest.TestCase):
+
+    @patch('hark.ssh.RemoteShellCommand.run')
+    def test_check_ssh(self, mockRun):
+        mockRun.return_value = Result('', 0, b'', b'')
+        assert hark.ssh.check_ssh(22, 'hark')
+
+        mockRun.return_value = Result('', 1, b'', b'')
+        assert not hark.ssh.check_ssh(22, 'hark')
 
 
 class TestRemoteShellCommand(unittest.TestCase):
@@ -38,3 +51,10 @@ class TestInterativeSSHCommand(unittest.TestCase):
         ]
         mockTerminalCommandInit.assert_called_with(
                 cmd, *expect)
+
+    @patch('hark.lib.platform.platform')
+    def test_ssh_command_windows(self, mockPlatform):
+        mockPlatform.return_value = 'win32'
+        self.assertRaises(
+            hark.exceptions.NotImplemented,
+            hark.ssh.InterativeSSHCommand, 22)

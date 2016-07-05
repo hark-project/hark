@@ -29,7 +29,9 @@ class Result(object):
     The bytes of stdout and stderr are assumed to be UTF-8 strings and are
     decoded as such.
     """
-    def __init__(self, cmd, exit_status, stdout, stderr):
+    def __init__(
+            self, cmd: List[str], exit_status: int,
+            stdout: bytes, stderr: bytes):
         self.cmd = cmd
         self.exit_status = exit_status
         self.stdout = stdout.decode('utf-8')
