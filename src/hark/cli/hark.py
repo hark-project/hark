@@ -1,20 +1,22 @@
 import click
-import sys
 import time
 
 from hark.cli.util import (
-    driverOption, guestOption,
-    modelsWithHeaders,
+    driverOption, guestOption, imageVersionPrompt,
+    findImage,
+    modelsWithHeaders, promptModelChoice,
     getMachine, getSSHMapping,
+    loadLocalContext,
 )
-from hark.client import LocalClient
-from hark.context import Context
+from hark.client import LocalClient, ImagestoreClient
 import hark.driver
 from hark.driver.status import RUNNING
 import hark.guest
 import hark.exceptions
 import hark.log as logger
-from hark.models.machine import MEMORY_MINIMUM
+from hark.models.machine import Machine, MEMORY_MINIMUM
+from hark.server.defaults import IMAGESTORE_URL
+from hark.models.port_mapping import PortMapping
 import hark.ssh
 import hark.util
 
@@ -27,10 +29,7 @@ def hark_main(ctx, hark_home=None, log_level='INFO'):
     "Hark is a tool to help manage virtual machines"
     logger.setLevel(log_level)
 
-    if hark_home is not None:
-        harkctx = Context(hark_home)
-    else:
-        harkctx = Context.home()
+    harkctx = loadLocalContext(hark_home)
 
     logger.setOutputFile(harkctx.log_file())
 
@@ -66,9 +65,6 @@ def machine_list(client):
     prompt="Memory (MB)", help="Memory allocated to the machine in MB")
 def new(ctx, **kwargs):
     "Create a new hark machine"
-    from hark.cli.util import findImage
-    from hark.models.machine import Machine
-    from hark.models.port_mapping import PortMapping
 
     client = ctx.obj
 
@@ -81,9 +77,9 @@ def new(ctx, **kwargs):
         image = findImage(client.images(), kwargs['driver'], kwargs['guest'])
         baseImagePath = client.imagePath(image)
     except hark.exceptions.ImageNotFound as e:
-        # TODO(cera) - don't just fail here
         click.secho('Image not found locally: %s' % e, fg='red')
-        sys.exit(1)
+        click.secho("Run 'hark image pull' to download it first.", fg='red')
+        raise click.Abort
 
     # Get a driver for this machine
     d = hark.driver.get_driver(kwargs['driver'], m)
@@ -96,7 +92,7 @@ def new(ctx, **kwargs):
         click.secho(
             'Machine already exists with these options:\n\t%s' % kwargs,
             fg='red')
-        sys.exit(1)
+        raise hark.Aborted
 
     # Create the machine
     click.secho('Creating machine:', fg='green')
@@ -231,25 +227,44 @@ def image(client):
     pass
 
 
-@image.command()
+@image.command(name='pull')
 @click.pass_obj
+@click.option(
+    '--imagestore-url', type=str,
+    envvar='IMAGESTORE_URL', default=IMAGESTORE_URL)
+def image_pull(client, imagestore_url=None):
+    "Pull down an image for the local cache"
+
+    image_client = ImagestoreClient(imagestore_url)
+
+    image = promptModelChoice(image_client.images())
+
+    if image in client.images():
+        click.secho(
+            'Already have this image locally: %s' % image.json(), fg='red')
+        click.secho(
+            "To download it again, first run 'hark image remove'",
+            fg='red')
+        return
+
+    url = image_client.image_url(image)
+
+    click.secho('Downloading image: ' + image.json(), fg='green')
+    click.secho('From URL: %s' % url, fg='green')
+
+    client.saveImageFromUrl(image, url)
+
+    return
+
+
+@image.command(name='pull-local')
+@click.pass_obj
+@click.argument('local_file', type=str)
 @driverOption
 @guestOption
-@click.option(
-    '--local-file', default=None, type=str,
-    help='Local file to pull from instead of remote image store service')
-def pull(client, driver=None, guest=None, local_file=None):
-    "Pull down an image for the local cache"
-    import hark.exceptions
-    import hark.models.image
-
-    if local_file is None:
-        # TODO(cera) - Implement reading from the remote image store.
-        raise hark.exceptions.NotImplemented
-
-    version = click.prompt(
-        "What version should this image be treated as?", type=int)
-
+@imageVersionPrompt
+def image_pull_local(client, local_file, driver, guest, version):
+    "Save an image from a local file"
     image = hark.models.image.Image(
         driver=driver, guest=guest, version=version)
     client.saveImageFromFile(image, local_file)
@@ -283,7 +298,7 @@ def ssh(client, name=None):
             % (status, RUNNING), fg='red')
         click.secho(
             "Try starting the machine first with 'hark vm start'", fg='red')
-        sys.exit(1)
+        raise hark.Aborted
 
     cmd = hark.ssh.InterativeSSHCommand(mapping['host_port'])
     cmd.run()

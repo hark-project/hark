@@ -7,6 +7,11 @@ import hark.lib.platform
 
 class TestSupports(TestCase):
 
+    @patch('multiprocessing.cpu_count')
+    def test_cpu_cores(self, mockCpuCount):
+        mockCpuCount.return_value = 2
+        assert hark.lib.platform.cpu_cores() == 2
+
     @patch('hark.lib.platform.platform')
     def test_supports(self, mockPlatform):
         mockPlatform.return_value = 'linux2'

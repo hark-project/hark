@@ -1,8 +1,9 @@
 import click
 import io
 import sys
-from typing import List
+from typing import List, Optional
 
+import hark.context
 import hark.driver
 import hark.guest
 from hark.exceptions import ImageNotFound, MachineNotFound
@@ -25,7 +26,21 @@ guestOption = click.option(
     required=True, help="The machine guest OS")
 
 
-def modelsWithHeaders(models: List[BaseModel]) -> str:
+imageVersionPrompt = click.option(
+    '--version', prompt='What version should this image be treated as?',
+    type=int, help='The version to treat this image as')
+
+
+def promptModelChoice(models: List[BaseModel]):
+    click.echo(modelsWithHeaders(models, add_index=True))
+    while True:
+        i = click.prompt('Choose by num', type=int)
+        if i > 0 and i <= len(models):
+            return models[i-1]
+        click.secho('Invalid choice: %d' % i, fg='red')
+
+
+def modelsWithHeaders(models: List[BaseModel], add_index: bool=False) -> str:
     """
     Generate a string to print a list of models with headers.
     """
@@ -35,19 +50,31 @@ def modelsWithHeaders(models: List[BaseModel]) -> str:
 
     fields = models[0].fields
 
+    if add_index:
+        # insert the num field
+        fields.insert(0, 'num')
+        # copy the models so that we don't mutate
+        models = [dict(m) for m in models]
+        # add num to each of them
+        for i, m in enumerate(models):
+            m['num'] = i+1
+
     # figure out what the field length should be for each field.
     # it is the greatest length of any value for that field in the list of
     # models, or the length of the field name itself; whichever is greater.
     lens = [max(len(str(m[f])) for m in models) for f in fields]
     lens = [max(l, len(fields[i])) for i, l in enumerate(lens)]
 
+    # padded header fields
     padded = [f.ljust(l) for f, l in zip(fields, lens)]
 
+    # write out the header
     buf.write(click.style(" ".join(padded) + "\n", fg='magenta'))
 
     paddedModels = []
     for m in models:
         vals = [m[f] for f in fields]
+
         padded = [str(f).ljust(l) for f, l in zip(vals, lens)]
         paddedModels.append(" ".join(padded))
 
@@ -88,3 +115,15 @@ def getSSHMapping(client, machine):
             % machine['name'], fg='red')
         sys.exit(1)
     return mappings[0]
+
+
+def loadLocalContext(hark_home=None):
+    if hark_home is not None:
+        return hark.context.Context(hark_home)
+    return hark.context.Context.home()
+
+
+def loadRemoteContext(
+        aws_access_key_id: Optional[str],
+        aws_secret_access_key: Optional[str]):
+    return hark.context.RemoteContext(aws_access_key_id, aws_secret_access_key)

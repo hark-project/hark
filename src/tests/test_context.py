@@ -5,8 +5,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from hark.context import Context
-from hark.context.imagecache import ImageCache
+from hark.context import Context, RemoteContext
+from hark.context.imagecache import ImageCache, S3ImageCache
 from hark.models.image import Image
 
 
@@ -32,6 +32,22 @@ class TestContext(unittest.TestCase):
             assert ctx.log_file() == os.path.join(d, 'hark.log')
         finally:
             shutil.rmtree(d)
+
+    def test_image_cache(self):
+        d = tempfile.mkdtemp()
+        try:
+            ctx = Context(d)
+            ic = ctx.image_cache()
+            assert isinstance(ic, ImageCache)
+        finally:
+            shutil.rmtree(d)
+
+
+class TestRemoteContext(unittest.TestCase):
+    def test_image_cache(self):
+        ctx = RemoteContext('a', 'b')
+        ic = ctx.image_cache()
+        assert isinstance(ic, S3ImageCache)
 
 
 class TestImageCache(unittest.TestCase):
@@ -75,3 +91,36 @@ class TestImageCache(unittest.TestCase):
         ic.saveFromFile(im, tf)
 
         mockCopy.assert_called_with(tf, ic.full_image_path(im))
+
+
+class TestS3ImageCache(unittest.TestCase):
+
+    @patch('hark.lib.aws.S3Bucket.list')
+    def test_images(self, mockList):
+        mockList.return_value = [
+            'machine_images/built',
+            'machine_images/built/Debian-8',
+            'machine_images/built/Debian-8/virtualbox',
+            'machine_images/built/Debian-8/virtualbox/v1.vmdk',
+            'machine_images/built/Debian-8/virtualbox/v2.vmdk',
+        ]
+
+        expect = [
+            Image(guest='Debian-8', driver='virtualbox', version=1),
+            Image(guest='Debian-8', driver='virtualbox', version=2),
+        ]
+
+        cache = S3ImageCache('a', 'b')
+
+        l = [dict(**im) for im in cache.images()]
+        r = [dict(**im) for im in expect]
+        assert l == r
+
+    def test_full_image_path(self):
+        im = Image(guest='Debian-8', driver='virtualbox', version=1)
+        cache = S3ImageCache('aaa', 'bbbb')
+        url = cache.full_image_path(im)
+        assert url.startswith('https')
+        assert im.s3_path() in url
+        assert 'aaa' in url
+        assert 'bbb' not in url

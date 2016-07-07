@@ -1,3 +1,4 @@
+import multiprocessing
 import re
 import sys
 
@@ -29,3 +30,7 @@ def supports(driver: str) -> bool:
         return driver in v
 
     raise UnknownPlatformException(pl)
+
+
+def cpu_cores():
+    return multiprocessing.cpu_count()

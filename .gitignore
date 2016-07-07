@@ -6,3 +6,5 @@ src/dist
 
 *.pyc
 *.swp
+.cache
+.coverage

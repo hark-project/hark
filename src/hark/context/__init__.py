@@ -1,7 +1,8 @@
 import os
 import os.path
+from typing import Optional
 
-from hark.context.imagecache import ImageCache
+from hark.context.imagecache import ImageCache, S3ImageCache
 import hark.dal
 import hark.log
 
@@ -17,7 +18,7 @@ class Context(object):
         self.dal = hark.dal.DAL(dbpath)
 
         imagedir = os.path.join(path, 'images')
-        self.image_cache = ImageCache(imagedir)
+        self._image_cache = ImageCache(imagedir)
 
     def log_file(self):
         return os.path.join(self.path, 'hark.log')
@@ -28,9 +29,25 @@ class Context(object):
         path = os.path.join(home, ".hark")
         return cls(path)
 
+    def image_cache(self) -> ImageCache:
+        return self._image_cache
+
     def _isInitialized(self):
         return os.path.exists(self.path)
 
     def _initialize(self, path):
         hark.log.info("Creating hark base dir: %s", self.path)
         os.mkdir(path)
+
+
+class RemoteContext(object):
+    def __init__(
+            self,
+            aws_access_key_id: Optional[str]=None,
+            aws_secret_access_key: Optional[str]=None) -> None:
+
+        self._image_cache = S3ImageCache(
+            aws_access_key_id, aws_secret_access_key)
+
+    def image_cache(self) -> S3ImageCache:
+        return self._image_cache

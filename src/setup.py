@@ -27,7 +27,8 @@ setuptools.setup(
 
     entry_points={
         'console_scripts': [
-            'hark = hark.cli.hark:hark_main'
+            'hark = hark.cli.hark:hark_main',
+            'hark_imagestore = hark.cli.hark_imagestore:hark_imagestore'
         ]
     },
 
