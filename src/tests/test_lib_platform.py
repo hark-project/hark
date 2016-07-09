@@ -14,6 +14,11 @@ class TestSupports(TestCase):
 
     @patch('hark.lib.platform.platform')
     def test_supports(self, mockPlatform):
+        mockPlatform.return_value = 'linux'
+
+        assert hark.lib.platform.supports('qemu')
+        assert hark.lib.platform.supports('virtualbox')
+
         mockPlatform.return_value = 'linux2'
 
         assert hark.lib.platform.supports('qemu')

@@ -15,7 +15,7 @@ def isWindows():
 
 _platformSupport = {
     r'^darwin$': ['virtualbox'],
-    r'^linux2$': ['qemu', 'virtualbox'],
+    r'^linux\d?$': ['qemu', 'virtualbox'],
     r'^win32$': ['virtualbox'],
     r'^freebsd\d+$':  ['virtualbox'],
 }
