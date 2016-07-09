@@ -25,12 +25,17 @@ setuptools.setup(
 
     include_package_data=True,
 
-    entry_points={
-        'console_scripts': [
-            'hark = hark.cli.hark:hark_main',
-            'hark_imagestore = hark.cli.hark_imagestore:hark_imagestore'
-        ]
-    },
+    # entry_points={
+    #    'console_scripts': [
+    #        'hark = hark.cli.hark:hark_main',
+    #        'hark_imagestore = hark.cli.hark_imagestore:hark_imagestore'
+    #    ]
+    # },
+
+    scripts=[
+        'bin/hark',
+        'bin/hark_imagestore',
+    ],
 
     zip_safe=True,
 

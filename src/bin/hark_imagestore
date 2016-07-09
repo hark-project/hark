@@ -1,0 +1,6 @@
+#!/bin/sh
+# a shell script is used here instead of a setuptools entry point because using
+# pkg_resources makes hark substantially slower, especially for basic
+# autocompletion functionality.
+
+exec python -c 'from hark.cli.hark_imagestore import hark_imagestore; hark_imagestore();'
