@@ -2,7 +2,7 @@ import click
 
 from hark.cli.util import loadLocalContext, loadRemoteContext
 from hark.lib.platform import cpu_cores
-from hark.server.imagestore import ImagestoreServer
+from hark.imagestore.server import ImagestoreServer
 
 DEFAULT_WORKERS = (cpu_cores() * 2) + 1
 
