@@ -1,15 +1,4 @@
-from typing import List
-
-import requests
-from requests.models import Response
-
-import hark.exceptions
 import hark.log as log
-from hark.models.image import Image
-from hark.models.machine import Machine
-from hark.models.port_mapping import PortMapping
-from hark.imagestore import URLS as IMAGESTORE_URLS
-import hark.util.download
 
 
 class LocalClient(object):
@@ -23,23 +12,28 @@ class LocalClient(object):
         with open(self._context.log_file(), 'r') as f:
             return f.read()
 
-    def machines(self) -> List[Machine]:
+    def machines(self):
         "Get all machines"
+        from hark.models.machine import Machine
         return self.dal().read(Machine)
 
-    def createMachine(self, machine: Machine) -> None:
+    def createMachine(self, machine):
         log.debug('Saving machine: %s', machine.json())
         self.dal().create(machine)
 
-    def getMachine(self, name) -> Machine:
+    def getMachine(self, name):
         "Get a machine by name."
+        import hark.exceptions
+        from hark.models.machine import Machine
+
         m = self.dal().read(Machine, constraints={"name": name})
         if len(m) == 0:
             raise hark.exceptions.MachineNotFound
         return m[0]
 
-    def portMappings(self, name=None, machine_id=None) -> List[PortMapping]:
+    def portMappings(self, name=None, machine_id=None):
         "Get all port mappings"
+        from hark.models.portmapping import PortMapping
         constraints = {}
         if name is not None:
             constraints['name'] = name
@@ -48,22 +42,24 @@ class LocalClient(object):
 
         return self.dal().read(PortMapping, constraints=constraints)
 
-    def createPortMapping(self, mapping: PortMapping) -> None:
+    def createPortMapping(self, mapping):
         log.debug('Saving port mapping: %s', mapping)
         self.dal().create(mapping)
 
-    def images(self) -> List[Image]:
+    def images(self):
         "Return the list of locally cached images"
         return self._context.image_cache().images()
 
-    def imagePath(self, image: Image):
+    def imagePath(self, image):
         "Get the full file path to an image"
         return self._context.image_cache().full_image_path(image)
 
-    def saveImageFromFile(self, image: Image, source: str):
+    def saveImageFromFile(self, image, source):
         self._context.image_cache().saveFromFile(image, source)
 
-    def saveImageFromUrl(self, image: Image, url: str):
+    def saveImageFromUrl(self, image, url):
+        import hark.util.download
+        import requests
         resp = requests.get(url, stream=True)
         f = open(self.imagePath(image), 'wb')
 
@@ -77,23 +73,28 @@ class LocalClient(object):
 
 class ImagestoreClient(object):
     def __init__(self, url: str) -> None:
+        import requests
+        import hark.imagestore
+
         self.session = requests.session()
         self.base_url = url
         self.session.headers['Accept'] = 'application/json'
+        self.urls = hark.imagestore.URLS
 
     def _full_url(self, url: str) -> str:
         return "%s/%s" % (self.base_url, url)
 
-    def _get(self, url: str) -> Response:
+    def _get(self, url: str):
         response = self.session.get(self._full_url(url))
         response.raise_for_status()
         return response.json()
 
-    def images(self) -> List[Image]:
-        js = self._get(IMAGESTORE_URLS['images'])
+    def images(self):
+        from hark.models.image import Image
+        js = self._get(self.urls['images'])
         return [Image(**o) for o in js]
 
-    def image_url(self, image: Image) -> str:
-        url = IMAGESTORE_URLS['image'].format(**image)
+    def image_url(self, image) -> str:
+        url = self.urls['image'].format(**image)
         js = self._get(url)
         return js['url']

@@ -1,13 +1,12 @@
-from typing import Optional
-
-import boto3.session
 
 
 class S3Bucket(object):
     def __init__(
             self, s3_region: str, s3_bucket: str,
-            aws_access_key_id: Optional[str]=None,
-            aws_secret_access_key: Optional[str]=None) -> None:
+            aws_access_key_id: None,
+            aws_secret_access_key: None) -> None:
+
+        import boto3.session
 
         session = boto3.session.Session(
             aws_access_key_id=aws_access_key_id,

@@ -1,14 +1,9 @@
 import click
-import io
 import sys
-from typing import List, Optional
 
-import hark.context
 import hark.driver
 import hark.guest
 from hark.exceptions import ImageNotFound, MachineNotFound
-from hark.models import BaseModel
-from hark.models.image import Image
 
 # Set up some reusable options
 
@@ -31,7 +26,7 @@ imageVersionPrompt = click.option(
     type=int, help='The version to treat this image as')
 
 
-def promptModelChoice(models: List[BaseModel]):
+def promptModelChoice(models):
     click.echo(modelsWithHeaders(models, add_index=True))
     while True:
         i = click.prompt('Choose by num', type=int)
@@ -40,10 +35,12 @@ def promptModelChoice(models: List[BaseModel]):
         click.secho('Invalid choice: %d' % i, fg='red')
 
 
-def modelsWithHeaders(models: List[BaseModel], add_index: bool=False) -> str:
+def modelsWithHeaders(models, add_index=False) -> str:
     """
     Generate a string to print a list of models with headers.
     """
+    import io
+
     buf = io.StringIO()
     if len(models) == 0:
         return ""
@@ -83,7 +80,7 @@ def modelsWithHeaders(models: List[BaseModel], add_index: bool=False) -> str:
     return buf.read()
 
 
-def findImage(images: List[Image], driver: str, guest: str) -> Image:
+def findImage(images, driver, guest):
     """
     Given a list of images, find the highest-version image for this driver and
     guest.
@@ -118,12 +115,14 @@ def getSSHMapping(client, machine):
 
 
 def loadLocalContext(hark_home=None):
+    from hark.context import Context
+
     if hark_home is not None:
-        return hark.context.Context(hark_home)
-    return hark.context.Context.home()
+        return Context(hark_home)
+    return Context.home()
 
 
-def loadRemoteContext(
-        aws_access_key_id: Optional[str],
-        aws_secret_access_key: Optional[str]):
-    return hark.context.RemoteContext(aws_access_key_id, aws_secret_access_key)
+def loadRemoteContext(aws_access_key_id, aws_secret_access_key):
+    from hark.context import RemoteContext
+
+    return RemoteContext(aws_access_key_id, aws_secret_access_key)

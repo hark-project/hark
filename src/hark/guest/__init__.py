@@ -1,7 +1,6 @@
 from typing import List
 
 from hark.exceptions import UnknownGuestException
-from hark.models.machine import Machine
 
 _setupScriptTmpl_Debian = """#!/bin/sh
 set -ex
@@ -19,7 +18,7 @@ class GuestConfig(object):
         self.setup_script_template = setup_script_template
         self._virtualbox_os_type = virtualbox_os_type
 
-    def setup_script(self, machine: Machine) -> str:
+    def setup_script(self, machine) -> str:
         return self.setup_script_template.format(**machine)
 
     def virtualbox_os_type(self) -> str:

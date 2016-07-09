@@ -1,5 +1,4 @@
 import click
-import time
 
 from hark.cli.util import (
     driverOption, guestOption, imageVersionPrompt,
@@ -8,17 +7,8 @@ from hark.cli.util import (
     getMachine, getSSHMapping,
     loadLocalContext,
 )
-from hark.client import LocalClient, ImagestoreClient
-import hark.driver
-from hark.driver.status import RUNNING
-import hark.guest
-import hark.exceptions
-import hark.log as logger
-from hark.models.machine import Machine, MEMORY_MINIMUM
-from hark.server.defaults import IMAGESTORE_URL
-from hark.models.port_mapping import PortMapping
-import hark.ssh
-import hark.util
+from hark.models.machine import MEMORY_MINIMUM
+from hark.imagestore import DEFAULT_IMAGESTORE_URL
 
 
 @click.group(name='hark')
@@ -27,11 +17,14 @@ import hark.util
 @click.option('--log-level', envvar='LOGLEVEL', type=str, default='INFO')
 def hark_main(ctx, hark_home=None, log_level='INFO'):
     "Hark is a tool to help manage virtual machines"
-    logger.setLevel(log_level)
+    from hark.client import LocalClient
+    import hark.log
+
+    hark.log.setLevel(log_level)
 
     harkctx = loadLocalContext(hark_home)
 
-    logger.setOutputFile(harkctx.log_file())
+    hark.log.setOutputFile(harkctx.log_file())
 
     ctx.obj = LocalClient(harkctx)
 
@@ -65,6 +58,14 @@ def machine_list(client):
     prompt="Memory (MB)", help="Memory allocated to the machine in MB")
 def new(ctx, **kwargs):
     "Create a new hark machine"
+    import hark.driver
+    import hark.exceptions
+    from hark.models.port_mapping import PortMapping
+    from hark.models.machine import Machine
+    import hark.ssh
+    import hark.util
+
+    import time
 
     client = ctx.obj
 
@@ -148,6 +149,9 @@ def new(ctx, **kwargs):
     prompt="Machine name", help="The name of the machine")
 def setup(client, name):
     "Run the setup script for a machine"
+    import hark.guest
+    import hark.ssh
+
     m = getMachine(client, name)
     setup_script = hark.guest.guest_config(m['guest']).setup_script(m)
     mapping = getSSHMapping(client, m)
@@ -168,6 +172,7 @@ def setup(client, name):
     help='Whether to start with a gui')
 def start(client, name, gui):
     "Start a machine"
+    import hark.driver
 
     m = getMachine(client, name)
 
@@ -189,6 +194,7 @@ def start(client, name, gui):
     prompt="Machine name", help="The name of the machine")
 def stop(client, name):
     "Stop a machine"
+    import hark.driver
 
     m = getMachine(client, name)
 
@@ -231,9 +237,10 @@ def image(client):
 @click.pass_obj
 @click.option(
     '--imagestore-url', type=str,
-    envvar='IMAGESTORE_URL', default=IMAGESTORE_URL)
+    envvar='IMAGESTORE_URL', default=DEFAULT_IMAGESTORE_URL)
 def image_pull(client, imagestore_url=None):
     "Pull down an image for the local cache"
+    from hark.client import ImagestoreClient
 
     image_client = ImagestoreClient(imagestore_url)
 
@@ -265,7 +272,8 @@ def image_pull(client, imagestore_url=None):
 @imageVersionPrompt
 def image_pull_local(client, local_file, driver, guest, version):
     "Save an image from a local file"
-    image = hark.models.image.Image(
+    from hark.models.image import Image
+    image = Image(
         driver=driver, guest=guest, version=version)
     client.saveImageFromFile(image, local_file)
 
@@ -286,6 +294,10 @@ def image_list(client):
     prompt="Machine name", help="The name of the machine")
 def ssh(client, name=None):
     "Connect to a machine over SSH"
+    import hark.driver
+    from hark.driver.status import RUNNING
+    import hark.ssh
+
     m = getMachine(client, name)
     d = hark.driver.get_driver(m['driver'], m)
     mapping = getSSHMapping(client, m)

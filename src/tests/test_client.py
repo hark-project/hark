@@ -18,7 +18,7 @@ class TestLocalClient(TestCase):
 
     @patch('hark.context.Context._initialize')
     @patch('hark.dal.DAL._connect')
-    @patch('hark.context.ImageCache._initialize')
+    @patch('hark.context.imagecache.ImageCache._initialize')
     def setUp(self, mockInit, mockConnect, mockCacheInit):
         self.ctx = hark.context.Context('balooga')
         assert mockInit.called

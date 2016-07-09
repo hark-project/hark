@@ -14,17 +14,17 @@ def isWindows():
 
 
 _platformSupport = {
-    re.compile(r'^darwin$'): ['virtualbox'],
-    re.compile(r'^linux2$'): ['qemu', 'virtualbox'],
-    re.compile(r'^win32$'): ['virtualbox'],
-    re.compile(r'^freebsd\d+$'):  ['virtualbox'],
+    r'^darwin$': ['virtualbox'],
+    r'^linux2$': ['qemu', 'virtualbox'],
+    r'^win32$': ['virtualbox'],
+    r'^freebsd\d+$':  ['virtualbox'],
 }
 
 
 def supports(driver: str) -> bool:
     pl = platform()
     for k, v in _platformSupport.items():
-        if not k.match(pl):
+        if not re.match(k, pl):
             continue
 
         return driver in v

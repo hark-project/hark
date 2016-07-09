@@ -2,13 +2,14 @@ import os
 import os.path
 from typing import Optional
 
-from hark.context.imagecache import ImageCache, S3ImageCache
 import hark.dal
 import hark.log
 
 
 class Context(object):
     def __init__(self, path):
+        from hark.context.imagecache import ImageCache
+
         self.path = path
 
         if not self._isInitialized():
@@ -29,7 +30,7 @@ class Context(object):
         path = os.path.join(home, ".hark")
         return cls(path)
 
-    def image_cache(self) -> ImageCache:
+    def image_cache(self):
         return self._image_cache
 
     def _isInitialized(self):
@@ -46,8 +47,10 @@ class RemoteContext(object):
             aws_access_key_id: Optional[str]=None,
             aws_secret_access_key: Optional[str]=None) -> None:
 
+        from hark.context.imagecache import S3ImageCache
+
         self._image_cache = S3ImageCache(
             aws_access_key_id, aws_secret_access_key)
 
-    def image_cache(self) -> S3ImageCache:
+    def image_cache(self):
         return self._image_cache

@@ -2,7 +2,6 @@ import os
 import shutil
 from typing import List, Optional
 
-import hark.lib.aws
 import hark.log as log
 from hark.models.image import Image
 
@@ -49,6 +48,9 @@ class S3ImageCache(object):
             self,
             aws_access_key_id: Optional[str]=None,
             aws_secret_access_key: Optional[str]=None) -> None:
+
+        import hark.lib.aws
+
         self.bucket = hark.lib.aws.S3Bucket(
             DEFAULT_S3_REGION, DEFAULT_S3_BUCKET,
             aws_access_key_id, aws_secret_access_key)
