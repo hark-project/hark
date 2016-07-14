@@ -25,7 +25,11 @@ def test_reqs():
 
 setuptools.setup(
     name='hark',
-    version='v1.0.0dev0',
+    version='v1.0.0.dev0',
+    author='Cera Davies',
+    author_email='ceralena.davies@gmail.com',
+    description='a simple virtual machine management tool',
+    url='https://hark-project.net',
 
     packages=setuptools.find_packages(exclude=('tests')),
 
@@ -52,7 +56,7 @@ setuptools.setup(
 
     # see https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
-        'Development Status :: Pre-Alpha',
+        'Development Status :: 2 - Pre-Alpha',
         'Framework :: Pytest',
         'Intended Audience :: Developers',
         'Intended Audience :: Education',

@@ -8,7 +8,8 @@ functional and unlikely to be useful yet.
 ## Intro
 
 Hark is a simple cross-platform tool for running virtual machines. It starts
-VMs very quickly with a minimum of configuration.
+VMs very quickly with a minimum of configuration. It is written in simple,
+straightforward Python.
 
 Hark is influenced by [Vagrant](www.vagrantup.com). Hark is smaller
 and less ambitious than Vagrant, providing for greater ease of use and
@@ -26,17 +27,23 @@ alongside the tool itself. Images are built with `packer`. Hark is able to find
 and download images it hasn't cached locally from the web service hosted by the
 project maintainers.
 
+# Installation
+
+Hark will soon be packaged in a user-friendly way for non-programmers. In the
+meantime, you can install it with `pip` if you have python installed:
+
+	pip install hark
+
+## From Source
+
+Using a Python virtualenv is strongly recommended. After checking out the repo:
+
+	cd src && pip install .
+
 # License
 
 GPLv3. See the LICENSE file for details.
 
-# Installation
-
-
-At the moment hark can only be installed from source, with Python. Using a Python
-virtualenv is strongly recommended. After checking out the repo:
-
-	cd src && pip install .
 
 # Python Support
 
