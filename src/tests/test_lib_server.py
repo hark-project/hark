@@ -1,5 +1,9 @@
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
+try:
+    from unittest.mock import patch, MagicMock
+except ImportError:
+    from mock import patch, MagicMock
+
 
 from hark.lib.server import HTTPServer
 

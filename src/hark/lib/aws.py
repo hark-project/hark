@@ -2,9 +2,8 @@
 
 class S3Bucket(object):
     def __init__(
-            self, s3_region: str, s3_bucket: str,
-            aws_access_key_id: None,
-            aws_secret_access_key: None) -> None:
+            self, s3_region, s3_bucket,
+            aws_access_key_id=None, aws_secret_access_key=None):
 
         import boto3.session
 
@@ -21,7 +20,7 @@ class S3Bucket(object):
         resp = self.s3.list_objects_v2(**params)
         return [o['Key'] for o in resp['Contents']]
 
-    def signed_url(self, key: str):
+    def signed_url(self, key):
         "Get a signed URL to GET an object"
         params = {'Bucket': self.bucket, 'Key': key}
         url = self.s3.generate_presigned_url(

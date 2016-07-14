@@ -8,7 +8,7 @@ class LocalClient(object):
     def dal(self):
         return self._context.dal
 
-    def log(self) -> str:
+    def log(self):
         with open(self._context.log_file(), 'r') as f:
             return f.read()
 
@@ -72,7 +72,7 @@ class LocalClient(object):
 
 
 class ImagestoreClient(object):
-    def __init__(self, url: str) -> None:
+    def __init__(self, url):
         import requests
         import hark.imagestore
 
@@ -81,10 +81,10 @@ class ImagestoreClient(object):
         self.session.headers['Accept'] = 'application/json'
         self.urls = hark.imagestore.URLS
 
-    def _full_url(self, url: str) -> str:
+    def _full_url(self, url):
         return "%s/%s" % (self.base_url, url)
 
-    def _get(self, url: str):
+    def _get(self, url):
         response = self.session.get(self._full_url(url))
         response.raise_for_status()
         return response.json()
@@ -94,7 +94,7 @@ class ImagestoreClient(object):
         js = self._get(self.urls['images'])
         return [Image(**o) for o in js]
 
-    def image_url(self, image) -> str:
+    def image_url(self, image):
         url = self.urls['image'].format(**image)
         js = self._get(url)
         return js['url']

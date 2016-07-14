@@ -1,10 +1,11 @@
 class status(object):
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name):
         self.name = name
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.name
+
 
 STOPPED = status('stopped')
 RUNNING = status('running')

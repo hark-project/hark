@@ -1,15 +1,11 @@
 import os
 import sqlite3
-from typing import Any, Dict, List
 
 from hark.exceptions import (
         InvalidQueryConstraint,
         DuplicateModelException
 )
 import hark.log
-from hark.models import (
-    SQLModel
-)
 
 
 def hark_schema():
@@ -41,7 +37,7 @@ class DAL(object):
         if not initialized:
             self._setup()
 
-    def _format_constraints(self, constraints: Dict[str, Any]) -> List[str]:
+    def _format_constraints(self, constraints):
         formatted = []
 
         for k, v in constraints.items():
@@ -56,7 +52,7 @@ class DAL(object):
 
         return formatted
 
-    def _read_query(self, cls, constraints=None) -> str:
+    def _read_query(self, cls, constraints=None):
         tmpl = "SELECT %s FROM %s%s;"
         fields = ", ".join(cls.fields)
         if constraints is not None and len(constraints) > 0:
@@ -67,7 +63,7 @@ class DAL(object):
 
         return tmpl % (fields, cls.table, cons_str)
 
-    def _insert_query(self, model: SQLModel) -> str:
+    def _insert_query(self, model):
         tmpl = "INSERT INTO {} ({}) VALUES ({});"
 
         fields = []
@@ -86,13 +82,13 @@ class DAL(object):
         )
         return (query, bindings)
 
-    def _setup(self) -> None:
+    def _setup(self):
         "Set up the schema"
         hark.log.info("Setting up DB schema: %s", self.path)
         self._db.executescript(hark_schema())
         self._db.commit()
 
-    def create(self, ins: SQLModel) -> None:
+    def create(self, ins):
         "Insert a model instance"
         query, bindings = self._insert_query(ins)
         try:
@@ -101,9 +97,7 @@ class DAL(object):
         except sqlite3.IntegrityError as e:
             raise DuplicateModelException(ins)
 
-    def read(
-            self, cls,
-            constraints: Dict[str, Any]=None) -> List[SQLModel]:
+    def read(self, cls, constraints=None):
         """
         Given a class and a set of constraints that should uniquely
         identify a row in the database, create an instance of this

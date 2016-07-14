@@ -3,7 +3,10 @@ import os.path
 import shutil
 import tempfile
 import unittest
-from unittest.mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 from hark.context import Context, RemoteContext
 from hark.context.imagecache import ImageCache, S3ImageCache

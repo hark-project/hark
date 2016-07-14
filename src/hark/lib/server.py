@@ -1,9 +1,4 @@
-from typing import Any, Dict, Callable
-
 import gunicorn.app.base
-
-# Type signature for the web app handler
-AppHandler = Callable[[Dict[str, Any], Callable[[bytes], None]], None]
 
 
 class UnicornApp(gunicorn.app.base.BaseApplication):
@@ -25,10 +20,7 @@ class UnicornApp(gunicorn.app.base.BaseApplication):
 class HTTPServer(object):
     "A Hark HTTP server"
 
-    def __init__(
-            self,
-            app: AppHandler,
-            port: int, workers: int):
+    def __init__(self, app, port, workers):
         options = {
             'bind': '%s:%d' % ('127.0.0.1', port),
             'workers': workers,

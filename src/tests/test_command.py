@@ -1,9 +1,13 @@
 import sys
 import unittest
-from unittest.mock import patch
+
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 import hark.exceptions
-from hark.lib.command import which, Command, Result, TerminalCommand, run_all
+from hark.lib.command import which, Command, Result, TerminalCommand
 
 
 class TestWhich(unittest.TestCase):
@@ -27,7 +31,7 @@ class TestWhich(unittest.TestCase):
 class TestCommand(unittest.TestCase):
     def test_command_result_true_false(self):
         for c, status in (("true", 0), ("false", 1)):
-            command = Command(c)
+            command = Command([c])
 
             res = command.run()
             assert isinstance(res, Result)
@@ -37,32 +41,22 @@ class TestCommand(unittest.TestCase):
 
     def test_command_output(self):
         word = "blaaaa"
-        c = Command("echo", word)
+        c = Command(["echo", word])
 
         res = c.run()
         assert res.stdout.strip() == word
 
     def test_command_input(self):
         stdin = "baloogs"
-        c = Command("cat", "-", stdin=stdin)
+        c = Command(["cat", "-"], stdin=stdin)
 
         res = c.run()
         assert res.stdout.strip() == stdin
 
-    def test_run_all(self):
-        c1 = Command("true")
-        c2 = Command("false")
-
-        results = run_all(c1, c2)
-
-        assert len(results) == 2
-        assert results[0].exit_status == 0
-        assert results[1].exit_status == 1
-
     def test_assert_run(self):
-        c = Command("false")
+        c = Command(["false"])
         self.assertRaises(hark.exceptions.CommandFailed, c.assertRun)
-        c = Command("true")
+        c = Command(["true"])
         assert c.assertRun().exit_status == 0
 
 

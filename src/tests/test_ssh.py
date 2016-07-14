@@ -1,6 +1,9 @@
 import os
 import unittest
-from unittest.mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 import hark.exceptions
 from hark.lib.command import Result
@@ -34,7 +37,7 @@ class TestRemoteShellCommand(unittest.TestCase):
         script = "ls /; echo 'hi!'"
         cmd = hark.ssh.RemoteShellCommand(script, 2222)
         assert cmd.stdin == script
-        assert 'ssh' in cmd.cmd
+        assert cmd.cmd[0] == 'ssh'
 
 
 class TestInterativeSSHCommand(unittest.TestCase):

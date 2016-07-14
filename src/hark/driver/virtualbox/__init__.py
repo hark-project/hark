@@ -1,9 +1,7 @@
 import re
-from typing import List
 
 import hark.exceptions
-from hark.lib.command import Command, Result
-from hark.models.port_mapping import PortMapping
+from hark.lib.command import Command
 import hark.log as log
 
 from .. import base
@@ -14,13 +12,13 @@ class Driver(base.BaseDriver):
     cmd = 'VBoxManage'
     versionArg = '-v'
 
-    def _run(self, cmd) -> Result:
+    def _run(self, cmd):
         # copy the list before mutating it
         cmd = list(cmd)
         # insert the binary name
         cmd.insert(0, self.cmd)
         # run it
-        return Command(*cmd).assertRun()
+        return Command(cmd).assertRun()
 
     def status(self):
         state = self._vmInfo()['VMState']
@@ -43,7 +41,7 @@ class Driver(base.BaseDriver):
             vmInfo[k] = v.strip('"')
         return vmInfo
 
-    def create(self, baseImagePath) -> None:
+    def create(self, baseImagePath):
         log.debug("virtualbox: Creating machine '%s'", self._name())
         log.debug("virtualbox: base image will be '%s'", baseImagePath)
         cmds = self._createCommands()
@@ -51,7 +49,7 @@ class Driver(base.BaseDriver):
             self._run(cmd)
         self._attachStorage(baseImagePath)
 
-    def _attachStorage(self, baseImagePath: str) -> None:
+    def _attachStorage(self, baseImagePath):
         name = self._name()
         self._run([
             'storagectl', name, '--name', 'sata1', '--add', 'sata'
@@ -81,10 +79,10 @@ class Driver(base.BaseDriver):
         attachCommand = attachCommand[:len(attachCommand)-2]
         self._run(attachCommand)
 
-    def _name(self) -> str:
+    def _name(self):
         return self.machine['name']
 
-    def start(self, gui=False) -> None:
+    def start(self, gui=False):
         log.debug("virtualbox: Starting machine '%s'", self._name())
 
         if gui:
@@ -95,18 +93,18 @@ class Driver(base.BaseDriver):
         cmd = ['startvm', self._name(), '--type', uiType]
         self._run(cmd)
 
-    def stop(self) -> None:
+    def stop(self):
         log.debug("virtualbox: Stopping machine '%s'", self._name())
         cmd = self._controlvm('acpipowerbutton')
         self._run(cmd)
 
-    def setPortMappings(self, mappings: List[PortMapping]) -> None:
+    def setPortMappings(self, mappings):
         for pm in mappings:
             fpm = pm.format_virtualbox()
             cmd = self._modifyvm('--natpf1', fpm)
             self._run(cmd)
 
-    def _createCommands(self) -> List[List[str]]:
+    def _createCommands(self):
         name = self._name()
         mod = self._modifyvm
         cmds = (

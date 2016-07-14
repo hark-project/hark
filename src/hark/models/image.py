@@ -17,17 +17,17 @@ class Image(hark.models.BaseModel):
     fields = ['driver', 'guest', 'version']
     required = ['driver', 'guest', 'version']
 
-    def file_suffix(self) -> str:
+    def file_suffix(self):
         return _file_suffixes[self['driver']]
 
-    def file_path(self) -> str:
+    def file_path(self):
         return '%s_%s_v%d.%s' % (
             self['driver'], self['guest'],
             self['version'], self.file_suffix())
 
     _filePathMatch = r'^(\w+)_(.*)_v(\d+)\..*$'
 
-    def s3_path(self) -> str:
+    def s3_path(self):
         return '%s/%s/v%d.%s' % (
             self['guest'], self['driver'],
             self['version'], self.file_suffix())

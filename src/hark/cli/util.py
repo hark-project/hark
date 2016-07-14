@@ -1,3 +1,5 @@
+from __future__ import absolute_import  # 2-3 compat
+
 import click
 import sys
 
@@ -35,7 +37,7 @@ def promptModelChoice(models):
         click.secho('Invalid choice: %d' % i, fg='red')
 
 
-def modelsWithHeaders(models, add_index=False) -> str:
+def modelsWithHeaders(models, add_index=False):
     """
     Generate a string to print a list of models with headers.
     """

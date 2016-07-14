@@ -32,11 +32,29 @@ GPLv3. See the LICENSE file for details.
 
 # Installation
 
+
 At the moment hark can only be installed from source, with Python. Using a Python
 virtualenv is strongly recommended. After checking out the repo:
 
 	cd src && pip install .
 
+# Python Support
+
+Hark only supports python 3.3 and up, because it uses the `yield from` syntax with `asyncio` coroutines.
+
+It is tested in dev on these version:
+
+* `2.7.11`
+* `3.3.5`
+* `3.4.3`
+* `3.5.1`
+
+And in travis on these versions:
+
+* `2.7`
+* `3.3`
+* `3.4`
+* `3.5`
 
 # Running Tests
 
@@ -44,7 +62,7 @@ These instructions all assume that you're in the `src` dir.
 
 Test dependencies are not installed by default:
 
-	$ pip install -r requirements-dev.txt
+	$ pip install -r req-*.txt
 
 To test via setuptools:
 
@@ -64,7 +82,7 @@ To install tox:
 To install the appropriate versions of the Python interpreter, consider
 [pyenv](https://github.com/yyuu/pyenv):
 
-	for ver in 3.3.5 3.4.3 3.5.1; do
+	$ for ver in 2.7.11 3.3.5 3.4.3 3.5.1; do
 		pyenv install $ver
 	done
 

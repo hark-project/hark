@@ -1,13 +1,12 @@
 from flask import Flask, jsonify
 
-from hark.context import Context
 from hark.models.image import Image
 from hark.lib.server import HTTPServer
 
 from . import URLS
 
 
-def make_app(harkctx: Context) -> Flask:
+def make_app(harkctx):
     "Create an imagestore web app instance"
     app = Flask('hark_imagestore')
 
@@ -38,5 +37,5 @@ def make_app(harkctx: Context) -> Flask:
 
 class ImagestoreServer(HTTPServer):
     "Subclasses HTTPServer to set the app to an imagestore app"
-    def __init__(self, harkctx: Context, port: int, workers: int) -> None:
+    def __init__(self, harkctx, port, workers):
         HTTPServer.__init__(self, make_app(harkctx), port, workers)

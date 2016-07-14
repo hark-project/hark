@@ -1,7 +1,11 @@
 import os
 import tempfile
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
+try:
+    from unittest.mock import patch, MagicMock
+except ImportError:
+    from mock import patch, MagicMock
+
 
 import hark.client
 import hark.dal

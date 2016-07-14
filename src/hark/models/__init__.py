@@ -9,10 +9,10 @@ class BaseModel(collections.OrderedDict):
 
     required = []
 
-    def json(self, indent=None) -> str:
+    def json(self, indent=None):
         return json.dumps(self, indent=indent)
 
-    def validate(self) -> None:
+    def validate(self):
         if not hasattr(self, 'fields'):
             raise ModelInvalidException(self, 'Missing fields definition')
 
@@ -47,7 +47,7 @@ class SQLModel(BaseModel):
         ins.validate()
         return ins
 
-    def validate(self) -> None:
+    def validate(self):
         BaseModel.validate(self)
         for attr in ['table', 'key']:
             if not hasattr(self, attr):

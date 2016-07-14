@@ -1,6 +1,5 @@
 import os
 import shutil
-from typing import List, Optional
 
 import hark.log as log
 from hark.models.image import Image
@@ -13,16 +12,16 @@ BUILT_IMAGE_PREFIX = 'machine_images/built'
 class ImageCache(object):
     "A local cache of image files."
 
-    def __init__(self, path) -> None:
+    def __init__(self, path):
         self.path = path
         if not os.path.exists(path):
             log.info("Creating hark image dir: %s", path)
             self._initialize()
 
-    def _initialize(self) -> None:
+    def _initialize(self):
         os.mkdir(self.path)
 
-    def images(self) -> List[Image]:
+    def images(self):
         "The list of cached images, sorted by ascending version"
         os.listdir(self.path)
         im = []
@@ -32,10 +31,10 @@ class ImageCache(object):
             im,
             key=lambda i: i['version']))
 
-    def full_image_path(self, image: Image) -> str:
+    def full_image_path(self, image):
         return os.path.join(self.path, image.file_path())
 
-    def saveFromFile(self, image: Image, source: str):
+    def saveFromFile(self, image, source):
         dest = self.full_image_path(image)
         log.info(
             "Copying local file %s to destination image %s",
@@ -44,10 +43,7 @@ class ImageCache(object):
 
 
 class S3ImageCache(object):
-    def __init__(
-            self,
-            aws_access_key_id: Optional[str]=None,
-            aws_secret_access_key: Optional[str]=None) -> None:
+    def __init__(self, aws_access_key_id=None, aws_secret_access_key=None):
 
         import hark.lib.aws
 
@@ -55,7 +51,7 @@ class S3ImageCache(object):
             DEFAULT_S3_REGION, DEFAULT_S3_BUCKET,
             aws_access_key_id, aws_secret_access_key)
 
-    def images(self) -> List[Image]:
+    def images(self):
         objects = self.bucket.list()
         objects = [
             o for o in objects
@@ -69,7 +65,7 @@ class S3ImageCache(object):
             im.append(image)
         return im
 
-    def full_image_path(self, image: Image) -> str:
+    def full_image_path(self, image):
         return self.bucket.signed_url(
             os.path.join(BUILT_IMAGE_PREFIX, image.s3_path())
         )

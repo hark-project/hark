@@ -1,6 +1,5 @@
 import os
 import os.path
-from typing import Optional
 
 import hark.dal
 import hark.log
@@ -42,10 +41,7 @@ class Context(object):
 
 
 class RemoteContext(object):
-    def __init__(
-            self,
-            aws_access_key_id: Optional[str]=None,
-            aws_secret_access_key: Optional[str]=None) -> None:
+    def __init__(self, aws_access_key_id=None, aws_secret_access_key=None):
 
         from hark.context.imagecache import S3ImageCache
 

@@ -21,7 +21,7 @@ _platformSupport = {
 }
 
 
-def supports(driver: str) -> bool:
+def supports(driver):
     pl = platform()
     for k, v in _platformSupport.items():
         if not re.match(k, pl):

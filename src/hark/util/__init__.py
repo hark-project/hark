@@ -1,8 +1,7 @@
 import socket
-from typing import List
 
 
-def get_free_port(exclude: List[int]=[]):
+def get_free_port(exclude=[]):
     "Find a free port to bind to. Exclude anything from the list provided."
     while True:
         sock = socket.socket()
