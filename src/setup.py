@@ -25,7 +25,7 @@ def test_reqs():
 
 setuptools.setup(
     name='hark',
-    version='v1.0.0-dev',
+    version='v1.0.0dev0',
 
     packages=setuptools.find_packages(exclude=('tests')),
 
