@@ -122,9 +122,3 @@ def loadLocalContext(hark_home=None):
     if hark_home is not None:
         return Context(hark_home)
     return Context.home()
-
-
-def loadRemoteContext(aws_access_key_id, aws_secret_access_key):
-    from hark.context import RemoteContext
-
-    return RemoteContext(aws_access_key_id, aws_secret_access_key)

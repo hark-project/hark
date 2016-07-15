@@ -38,15 +38,3 @@ class Context(object):
     def _initialize(self, path):
         hark.log.info("Creating hark base dir: %s", self.path)
         os.mkdir(path)
-
-
-class RemoteContext(object):
-    def __init__(self, aws_access_key_id=None, aws_secret_access_key=None):
-
-        from hark.context.imagecache import S3ImageCache
-
-        self._image_cache = S3ImageCache(
-            aws_access_key_id, aws_secret_access_key)
-
-    def image_cache(self):
-        return self._image_cache
