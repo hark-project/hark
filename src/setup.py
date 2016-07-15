@@ -25,7 +25,7 @@ def test_reqs():
 
 setuptools.setup(
     name='hark',
-    version='v1.0.0.dev0',
+    version='v1.0.0.dev1',
     author='Cera Davies',
     author_email='ceralena.davies@gmail.com',
     description='a simple virtual machine management tool',
@@ -38,16 +38,8 @@ setuptools.setup(
 
     include_package_data=True,
 
-    # entry_points={
-    #    'console_scripts': [
-    #        'hark = hark.cli.hark:hark_main',
-    #        'hark_imagestore = hark.cli.hark_imagestore:hark_imagestore'
-    #    ]
-    # },
-
     scripts=[
         'bin/hark',
-        'bin/hark_imagestore',
     ],
 
     zip_safe=True,
