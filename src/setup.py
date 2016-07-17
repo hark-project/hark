@@ -25,7 +25,7 @@ def test_reqs():
 
 setuptools.setup(
     name='hark',
-    version='v1.0.0.dev1',
+    version='v1.0.0.dev2',
     author='Cera Davies',
     author_email='ceralena.davies@gmail.com',
     description='a simple virtual machine management tool',
