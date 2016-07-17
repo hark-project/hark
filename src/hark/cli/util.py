@@ -116,9 +116,11 @@ def getSSHMapping(client, machine):
     return mappings[0]
 
 
-def loadLocalContext(hark_home=None):
-    from hark.context import Context
+def loadLocalContext(hark_home=None, context_class=None):
+    if context_class is None:
+        from hark.context import Context
+        context_class = Context
 
     if hark_home is not None:
-        return Context(hark_home)
-    return Context.home()
+        return context_class(hark_home)
+    return context_class.home()

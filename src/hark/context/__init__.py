@@ -11,8 +11,7 @@ class Context(object):
 
         self.path = path
 
-        if not self._isInitialized():
-            self._initialize(path)
+        self._initialize(path)
 
         dbpath = os.path.join(path, "hark.db")
         self.dal = hark.dal.DAL(dbpath)
@@ -32,9 +31,7 @@ class Context(object):
     def image_cache(self):
         return self._image_cache
 
-    def _isInitialized(self):
-        return os.path.exists(self.path)
-
     def _initialize(self, path):
-        hark.log.info("Creating hark base dir: %s", self.path)
-        os.mkdir(path)
+        if not os.path.exists(path):
+            hark.log.info("Creating hark base dir: %s", self.path)
+            os.mkdir(path)
