@@ -82,4 +82,5 @@ class TestTerminalCommand(unittest.TestCase):
         ret = cmd.run()
 
         assert ret == 1
-        assert mockPopen.called_with(cmd, sys.stdin, sys.stdout, sys.stderr, '/tmp')
+        assert mockPopen.called_with(
+            cmd, sys.stdin, sys.stdout, sys.stderr, '/tmp')
