@@ -72,3 +72,14 @@ class TestTerminalCommand(unittest.TestCase):
 
         assert ret == 1
         assert mockPopen.called_with(cmd, sys.stdin, sys.stdout, sys.stderr)
+
+    @patch('subprocess.Popen')
+    def test_terminal_command_cwd(self, mockPopen):
+        mockInstance = mockPopen.return_value
+        mockInstance.wait.return_value = 1
+
+        cmd = TerminalCommand(['ls'], cwd='/tmp')
+        ret = cmd.run()
+
+        assert ret == 1
+        assert mockPopen.called_with(cmd, sys.stdin, sys.stdout, sys.stderr, '/tmp')

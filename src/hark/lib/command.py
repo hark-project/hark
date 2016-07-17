@@ -1,4 +1,5 @@
 from subprocess import PIPE
+import os
 import subprocess
 import sys
 
@@ -66,16 +67,31 @@ class TerminalCommand(object):
             self, cmd,
             stdin=sys.stdin,
             stdout=sys.stdout,
-            stderr=sys.stderr):
+            stderr=sys.stderr,
+            cwd=None, env={}):
         self.cmd = cmd
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
+        self.cwd = cwd
+        self.env = env
 
     def run(self):
         "Run this command interactively. Return its exit status."
-        hark.log.debug("Running command attached to terminal: %s", self.cmd)
+        env = os.environ.copy()
+        env.update(self.env)
+
+        if self.cwd is not None:
+            hark.log.debug(
+                "Running command attached to tty: %s in cwd %s with env %s",
+                self.cmd, self.cwd, self.env)
+        else:
+            hark.log.debug(
+                "Running command attached to tty: %s with env %s",
+                self.cmd, self.env)
+
         proc = subprocess.Popen(
             self.cmd,
-            stdin=self.stdin, stdout=self.stdout, stderr=self.stderr)
+            stdin=self.stdin, stdout=self.stdout, stderr=self.stderr,
+            cwd=self.cwd, env=env)
         return proc.wait()
