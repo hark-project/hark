@@ -11,7 +11,7 @@ _file_suffixes = {
 
 class Image(hark.models.BaseModel):
     """
-    A base image for running Hark machines.
+    An  image for running Hark machines.
     """
 
     fields = ['driver', 'guest', 'version']
