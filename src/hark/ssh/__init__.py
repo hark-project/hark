@@ -54,4 +54,4 @@ class InterativeSSHCommand(TerminalCommand):
             raise hark.exceptions.NotImplemented("SSH on windows")
 
         cmd = _ssh_command_args(port, user)
-        TerminalCommand.__init__(self, *cmd)
+        TerminalCommand.__init__(self, cmd)

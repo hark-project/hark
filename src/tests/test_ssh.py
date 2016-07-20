@@ -53,7 +53,7 @@ class TestInterativeSSHCommand(unittest.TestCase):
             'hark@localhost'
         ]
         mockTerminalCommandInit.assert_called_with(
-                cmd, *expect)
+                cmd, expect)
 
     @patch('hark.lib.platform.platform')
     def test_ssh_command_windows(self, mockPlatform):
