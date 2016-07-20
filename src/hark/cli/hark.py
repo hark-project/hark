@@ -317,5 +317,29 @@ def ssh(client, name=None):
     cmd = hark.ssh.InterativeSSHCommand(mapping['host_port'])
     cmd.run()
 
+
+@hark_main.group()
+def util():
+    "Various utility commands"
+    pass
+
+
+@util.command()
+@click.pass_obj
+@click.option(
+    "--name", type=str, required=True,
+    prompt="Machine name", help="The name of the machine")
+def ssh_config(client, name):
+    "Print the OpenSSH config for a machine"
+    import hark.ssh
+
+    m = getMachine(client, name)
+    mapping = getSSHMapping(client, m)
+    conf = hark.ssh.SSHConfig(m, mapping)
+
+    click.secho('# ssh config for hark machine %s' % m['name'], fg='green')
+    click.echo(str(conf))
+
+
 if __name__ == '__main__':
     hark_main()

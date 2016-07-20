@@ -33,7 +33,7 @@ class LocalClient(object):
 
     def portMappings(self, name=None, machine_id=None):
         "Get all port mappings"
-        from hark.models.portmapping import PortMapping
+        from hark.models.port_mapping import PortMapping
         constraints = {}
         if name is not None:
             constraints['name'] = name

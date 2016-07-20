@@ -5,6 +5,8 @@ try:
 except ImportError:
     from mock import patch
 
+import hark.models.machine
+import hark.models.port_mapping
 import hark.exceptions
 from hark.lib.command import Result
 import hark.ssh
@@ -61,3 +63,34 @@ class TestInterativeSSHCommand(unittest.TestCase):
         self.assertRaises(
             hark.exceptions.NotImplemented,
             hark.ssh.InterativeSSHCommand, 22)
+
+
+class TestSSHConfig(unittest.TestCase):
+
+    def test_ssh_conf(self):
+        machine = hark.models.machine.Machine(
+            name='blaerblo')
+        port_mapping = hark.models.port_mapping.PortMapping(
+            name='ssh', guest_port=22, host_port=57890
+        )
+
+        conf = hark.ssh.SSHConfig(machine, port_mapping)
+        lines = list(str(conf).splitlines())
+
+        assert len(lines) == 11
+        assert lines[0] == 'Host blaerblo'
+        assert lines[1][4:] == 'HostName 127.0.0.1'
+        assert lines[2][4:] == 'User hark'
+        assert lines[3][4:] == 'Port 57890'
+        assert lines[4][4:] == 'UserKnownHostsFile /dev/null'
+        assert lines[5][4:] == 'StrictHostKeyChecking no'
+        assert lines[6][4:] == 'PasswordAuthentication no'
+        assert lines[7][4:].startswith('IdentityFile')
+        assert 'hark/ssh/keys/hark' in lines[7]
+        assert lines[8][4:] == 'IdentitiesOnly yes'
+        assert lines[9][4:] == 'LogLevel FATAL'
+        assert lines[10][4:] == 'ForwardAgent no'
+
+        conf = hark.ssh.SSHConfig(machine, port_mapping, forward_agent=True)
+        lines = list(str(conf).splitlines())
+        assert lines[10][4:] == 'ForwardAgent yes'

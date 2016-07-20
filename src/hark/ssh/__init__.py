@@ -55,3 +55,39 @@ class InterativeSSHCommand(TerminalCommand):
 
         cmd = _ssh_command_args(port, user)
         TerminalCommand.__init__(self, cmd)
+
+
+_sshConfigTmpl = """Host {name}
+    HostName 127.0.0.1
+    User hark
+    Port {port}
+    UserKnownHostsFile /dev/null
+    StrictHostKeyChecking no
+    PasswordAuthentication no
+    IdentityFile {private_key_path}
+    IdentitiesOnly yes
+    LogLevel FATAL
+    ForwardAgent {forward_agent}
+"""
+
+
+class SSHConfig(object):
+    """
+    SSHConfig, given a machine and mapping model, can generate the appropriate
+    OpenSSH config for this machine.
+    """
+    def __init__(self, machine, mapping, forward_agent=False):
+        self.machine = machine
+        self.mapping = mapping
+        self.forward_agent = forward_agent
+
+    def __str__(self):
+        private_key_path, _ = hark_ssh_keys()
+        fw = 'yes' if self.forward_agent else 'no'
+
+        return _sshConfigTmpl.format(
+            name=self.machine['name'],
+            port=self.mapping['host_port'],
+            private_key_path=private_key_path,
+            forward_agent=fw,
+        )
