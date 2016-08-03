@@ -1,11 +1,12 @@
 from __future__ import absolute_import  # 2-3 compat
+from __future__ import unicode_literals
 
 import click
 import sys
 
 import hark.driver
 import hark.guest
-from hark.exceptions import ImageNotFound, MachineNotFound
+from hark.exceptions import MachineNotFound
 
 # Set up some reusable options
 
@@ -80,20 +81,6 @@ def modelsWithHeaders(models, add_index=False):
     buf.write("\n".join(paddedModels))
     buf.seek(0)
     return buf.read()
-
-
-def findImage(images, driver, guest):
-    """
-    Given a list of images, find the highest-version image for this driver and
-    guest.
-
-    Raises ImageNotFound if none is found.
-    """
-    im = [i for i in images if i['driver'] == driver and i['guest'] == guest]
-    if len(im) == 0:
-        raise ImageNotFound(
-            "no local image for driver '%s' and guest: '%s'" % (driver, guest))
-    return im[-1]
 
 
 def getMachine(client, name):

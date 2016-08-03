@@ -4,7 +4,6 @@ import click
 
 from hark.cli.util import (
     driverOption, guestOption, imageVersionPrompt,
-    findImage,
     modelsWithHeaders, promptModelChoice,
     getMachine, getSSHMapping,
     loadLocalContext,
@@ -60,13 +59,9 @@ def machine_list(client):
     prompt="Memory (MB)", help="Memory allocated to the machine in MB")
 def new(ctx, **kwargs):
     "Create a new hark machine"
-    import hark.driver
-    import hark.exceptions
-    from hark.models.port_mapping import PortMapping
     from hark.models.machine import Machine
+    import hark.procedure
     import hark.ssh
-    import hark.util
-
     import time
 
     client = ctx.obj
@@ -75,56 +70,22 @@ def new(ctx, **kwargs):
     m = Machine.new(**{f: kwargs[f] for f in Machine.fields if f in kwargs})
     m.validate()
 
-    # See if we have the specified image
+    proc = hark.procedure.NewMachine(client, m)
+
     try:
-        image = findImage(client.images(), kwargs['driver'], kwargs['guest'])
-        baseImagePath = client.imagePath(image)
-    except hark.exceptions.ImageNotFound as e:
-        click.secho('Image not found locally: %s' % e, fg='red')
-        click.secho("Run 'hark image pull' to download it first.", fg='red')
+        for msg in proc.run():
+            click.secho(msg, fg='red')
+    except hark.procedure.Abort:
         raise click.Abort
 
-    # Get a driver for this machine
-    d = hark.driver.get_driver(kwargs['driver'], m)
-
-    # Save it in the DAL.
-    # This will identify duplicates before we attempt to create the machine.
-    try:
-        client.createMachine(m)
-    except hark.exceptions.DuplicateModelException:
-        click.secho(
-            'Machine already exists with these options:\n\t%s' % kwargs,
-            fg='red')
-        raise hark.Aborted
-
-    # Create the machine
-    click.secho('Creating machine:', fg='green')
-    click.echo(m.json(indent=4))
-    d.create(baseImagePath)
-
-    # Set up an SSH port mapping for this machine
-    # We need to find a free port that is not used by any other machines.
-    mappings = client.portMappings()
-    used_host_ports = [mp['host_port'] for mp in mappings]
-    host_port = hark.util.get_free_port(exclude=used_host_ports)
-    guest_port = 22
-    mapping = PortMapping(
-        host_port=host_port,
-        guest_port=guest_port,
-        machine_id=m['machine_id'],
-        name='ssh')
-
-    click.secho('Configuring ssh port mapping:', fg='green')
-    click.echo(mapping.json(indent=4))
-
-    # Create the mapping in the driver
-    d.setPortMappings([mapping])
-
-    # Save the mapping in the DAL
-    client.createPortMapping(mapping)
-
-    # Now wait until the machine is running and run the setup script
     click.secho('Done.', fg='green')
+
+    click.secho('Created machine:', fg='green')
+    click.echo(proc.machine.json(indent=4))
+    click.secho('Created port mapping:', fg='green')
+    click.echo(proc.ssh_port_mapping.json(indent=4))
+    click.secho('Created private network interface:', fg='green')
+    click.echo(proc.private_interface.json(indent=4))
 
     if not click.confirm('Start the machine and run the setup script?'):
         click.secho(
@@ -133,6 +94,8 @@ def new(ctx, **kwargs):
         click.secho('\thark vm start --name %s' % m['name'])
         click.secho('\thark vm setup --name %s' % m['name'])
         return
+
+    host_port = proc.ssh_port_mapping['host_port']
 
     ctx.invoke(start, name=m['name'], gui=False)
     click.secho("Waiting for SSH to be available", fg='green')
