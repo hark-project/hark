@@ -3,7 +3,7 @@ from io import BufferedWriter
 from requests import Response
 
 
-def responseToFile(msg: str, response: Response, f: BufferedWriter):
+def responseToFile(msg, response, f):
     """
     Download a response object to a value. Print a progress bar with click.
 
