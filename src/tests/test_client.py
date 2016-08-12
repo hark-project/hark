@@ -31,8 +31,8 @@ class TestLocalClient(TestCase):
 
     def testMachines(self):
         m = Machine(
-                machine_id='1', name='foo',
-                driver='yes', guest='no', memory_mb=512)
+            machine_id='1', name='foo',
+            driver='yes', guest='no', memory_mb=512)
 
         mockRead = MagicMock(return_value=[m])
         self.ctx.dal.read = mockRead

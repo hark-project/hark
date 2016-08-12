@@ -5,8 +5,8 @@ import tempfile
 import unittest
 
 from hark.dal import (
-        DAL,
-        InMemoryDAL
+    DAL,
+    InMemoryDAL
 )
 from hark.exceptions import InvalidQueryConstraint, DuplicateModelException
 from hark.models import SQLModel
@@ -68,8 +68,8 @@ class TestDALQueries(unittest.TestCase):
 
         cons = {"a": {}}
         self.assertRaises(
-                InvalidQueryConstraint,
-                self.db._read_query, mymodel, constraints=cons)
+            InvalidQueryConstraint,
+            self.db._read_query, mymodel, constraints=cons)
 
     def test_insert_query(self):
 
@@ -127,13 +127,13 @@ class TestDALCRUD(unittest.TestCase):
 
     def test_create_dup(self):
         ins = Machine.new(
-                name='foo', driver='blah',
-                guest='bleh', memory_mb=512)
+            name='foo', driver='blah',
+            guest='bleh', memory_mb=512)
         self.dal.create(ins)
 
         ins = Machine.new(
-                name='foo', driver='blah',
-                guest='bleh', memory_mb=512)
+            name='foo', driver='blah',
+            guest='bleh', memory_mb=512)
         self.assertRaises(
-                DuplicateModelException,
-                self.dal.create, ins)
+            DuplicateModelException,
+            self.dal.create, ins)

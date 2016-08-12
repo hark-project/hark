@@ -1,10 +1,9 @@
-import socket
-
-from hark.exceptions import ImageNotFound
+from hark.exceptions import BadHarkEnvironment, ImageNotFound
 
 
 def getFreePort(exclude=[]):
     "Find a free port to bind to. Exclude anything from the list provided."
+    import socket
     while True:
         sock = socket.socket()
         sock.bind(('', 0))
