@@ -1,6 +1,5 @@
 import pip.req
 import setuptools
-import sys
 
 
 def install_reqs():
@@ -12,13 +11,6 @@ def install_reqs():
 def test_reqs():
     reqs = pip.req.parse_requirements('requirements-dev.txt', session=False)
     reqs = [str(ir.req) for ir in reqs]
-
-    if sys.version_info.major == 2:
-        # needed for python2 only
-        reqs27 = pip.req.parse_requirements(
-            'requirements-dev-py27.txt', session=False)
-        reqs27 = [str(ir.req) for ir in reqs27]
-        reqs.extend(reqs27)
 
     return reqs
 

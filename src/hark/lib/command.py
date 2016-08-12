@@ -38,7 +38,6 @@ class Result(object):
 
 class Command(object):
     def __init__(self, cmd, stdin=''):
-        # TODO(cera) - Is this the only syntax valid in py27?
         self.cmd = cmd
         self.stdin = stdin
 

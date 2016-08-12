@@ -1,8 +1,5 @@
 import unittest
-try:
-    from unittest.mock import call, patch
-except ImportError:
-    from mock import call, patch
+from unittest.mock import call, patch
 
 import hark.util
 
