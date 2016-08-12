@@ -8,6 +8,7 @@ from hark.models import (
     BaseModel,
     SQLModel,
 )
+from hark.models.config import Config
 from hark.models.machine import Machine
 from hark.models.port_mapping import PortMapping
 from hark.models.network_interface import NetworkInterface
@@ -117,3 +118,12 @@ class TestNetworkInterface(unittest.TestCase):
             addr=None)
 
         ni.validate()
+
+
+class TestConfig(unittest.TestCase):
+    def test_config(self):
+        cfg = Config(name='a', value='b')
+        cfg.validate()
+
+        cfg = Config(name='a')
+        self.assertRaises(ModelInvalidException, cfg.validate)
