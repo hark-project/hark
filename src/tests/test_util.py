@@ -26,12 +26,27 @@ class TestGetFreePort(unittest.TestCase):
 class TestCheckHarkEnv(unittest.TestCase):
 
     @patch('getpass.getuser')
-    def test_CheckHarkEnv(self, mockGetUser):
+    def test_CheckHarkEnv_User(self, mockGetUser):
         # check that a normal user is fine
         mockGetUser.return_value = 'blah'
         hark.util.checkHarkEnv()
 
         # check that root is not fine
         mockGetUser.return_value = 'root'
+        self.assertRaises(
+            hark.exceptions.BadHarkEnvironment, hark.util.checkHarkEnv)
+
+    @patch('sys.version_info')
+    def test_CheckHarkEnv_Version(self, mockVersionInfo):
+        # chedck that python3 is fine
+        mockVersionInfo.major = 3
+        mockVersionInfo.minor = 5
+        mockVersionInfo.micro = 1
+        hark.util.checkHarkEnv()
+
+        # check that python 2.x is not fine
+        mockVersionInfo.major = 2
+        mockVersionInfo.minor = 7
+        mockVersionInfo.micro = 11
         self.assertRaises(
             hark.exceptions.BadHarkEnvironment, hark.util.checkHarkEnv)

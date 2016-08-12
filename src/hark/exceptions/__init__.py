@@ -78,7 +78,11 @@ class UnrecognisedMachineState(Exception):
 
 
 class BadHarkEnvironment(Exception):
-    pass
+    def __init__(self, *complaints):
+        msg = "hark found %d issues with your environment; they were:\n%s" % (
+            len(complaints), "\n ".join(complaints)
+        )
+        Exception.__init__(self, msg)
 
 
 class NetworkFull(Exception):

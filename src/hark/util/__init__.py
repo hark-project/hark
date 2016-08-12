@@ -34,6 +34,15 @@ def checkHarkEnv():
     hark.
     """
     import getpass
+    import sys
 
     if getpass.getuser() == 'root':
         raise BadHarkEnvironment('hark cannot be run as root, or with sudo')
+
+    if sys.version_info.major == 2:
+        raise BadHarkEnvironment(
+            'hark is not supported on python2; you are running %d.%d.%d' %
+            (
+                sys.version_info.major,
+                sys.version_info.minor,
+                sys.version_info.micro))
