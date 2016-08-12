@@ -1,4 +1,5 @@
 include requirements.txt
 include requirements-dev.txt
+include fastentrypoints.py
 include hark/dal/schema.sql
 include hark/ssh/keys/*

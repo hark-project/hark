@@ -1,6 +1,0 @@
-#!/bin/sh
-# a shell script is used here instead of a setuptools entry point because using
-# pkg_resources makes hark substantially slower, especially for basic
-# autocompletion functionality.
-
-exec python -c 'import sys; sys.argv = sys.argv[1:]; from hark.cli.hark import hark_main; hark_main();' hark $@

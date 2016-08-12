@@ -1,6 +1,10 @@
 import pip.req
 import setuptools
 
+# see https://github.com/pypa/setuptools/issues/510
+# from https://github.com/ninjaaron/fast-entry_points
+import fastentrypoints  # NOQA
+
 
 def install_reqs():
     reqs = pip.req.parse_requirements('requirements.txt', session=False)
@@ -30,9 +34,11 @@ setuptools.setup(
 
     include_package_data=True,
 
-    scripts=[
-        'bin/hark',
-    ],
+    entry_points={
+        'console_scripts': [
+            'hark = hark.cli.hark:hark_main'
+        ]
+    },
 
     zip_safe=True,
 
