@@ -3,6 +3,7 @@ import os.path
 
 import hark.dal
 import hark.log
+import hark.networking
 
 
 class Context(object):
@@ -19,6 +20,8 @@ class Context(object):
         imagedir = os.path.join(path, 'images')
         self._image_cache = ImageCache(imagedir)
 
+        self._network = hark.networking.Network()
+
     def log_file(self):
         return os.path.join(self.path, 'hark.log')
 
@@ -30,6 +33,9 @@ class Context(object):
 
     def image_cache(self):
         return self._image_cache
+
+    def network(self):
+        return self._network
 
     def _initialize(self, path):
         if not os.path.exists(path):

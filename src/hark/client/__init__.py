@@ -8,6 +8,9 @@ class LocalClient(object):
     def dal(self):
         return self._context.dal
 
+    def network(self):
+        return self._context.network()
+
     def log(self):
         with open(self._context.log_file(), 'r') as f:
             return f.read()
@@ -45,6 +48,29 @@ class LocalClient(object):
     def createPortMapping(self, mapping):
         log.debug('Saving port mapping: %s', mapping)
         self.dal().create(mapping)
+
+    def networkInterfaces(self, machine=None, kind=None):
+        "Get all network interfaces"
+        from hark.models.network_interface import NetworkInterface
+
+        constraints = {}
+        if kind is not None:
+            constraints['kind'] = kind
+        if machine is not None:
+            constraints['machine_id'] = machine['machine_id']
+
+        return self.dal().read(NetworkInterface, constraints=constraints)
+
+    def freePrivateIP(self):
+        "Get an free private IP address for a machine"
+        used = self.networkInterfaces(kind='private')
+        exclude = [i['addr'] for i in used]
+        addr = self.network().get_free_address(exclude=exclude)
+        return addr
+
+    def createNetworkInterface(self, iface):
+        log.debug('Saving network interface: %s', iface)
+        self.dal().create(iface)
 
     def images(self):
         "Return the list of locally cached images"

@@ -17,7 +17,7 @@ _platformSupport = {
     r'^darwin$': ['virtualbox'],
     r'^linux\d?$': ['qemu', 'virtualbox'],
     r'^win32$': ['virtualbox'],
-    r'^freebsd\d+$':  ['virtualbox'],
+    r'^freebsd\d+$': ['virtualbox'],
 }
 
 

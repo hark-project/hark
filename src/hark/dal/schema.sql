@@ -9,8 +9,17 @@ CREATE TABLE machine (
 );
 
 CREATE TABLE port_mapping (
-	host_port INTEGER PRIMARY KEY,
+	host_port  INTEGER PRIMARY KEY,
 	guest_port INTEGER,
 	machine_id char(36),
-	name varchar(255)
+	name       varchar(255)
+);
+
+CREATE TABLE network_interface (
+	machine_id char(36),
+	kind       varchar(255),
+	label      varchar(255),
+	addr       varchar(15),
+
+	PRIMARY KEY (machine_id, kind)
 );

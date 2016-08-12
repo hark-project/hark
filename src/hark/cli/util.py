@@ -31,7 +31,7 @@ def promptModelChoice(models):
     while True:
         i = click.prompt('Choose by num', type=int)
         if i > 0 and i <= len(models):
-            return models[i-1]
+            return models[i - 1]
         click.secho('Invalid choice: %d' % i, fg='red')
 
 
@@ -54,7 +54,7 @@ def modelsWithHeaders(models, add_index=False):
         models = [dict(m) for m in models]
         # add num to each of them
         for i, m in enumerate(models):
-            m['num'] = i+1
+            m['num'] = i + 1
 
     # figure out what the field length should be for each field.
     # it is the greatest length of any value for that field in the list of
@@ -108,3 +108,19 @@ def loadLocalContext(hark_home=None, context_class=None):
     if hark_home is not None:
         return context_class(hark_home)
     return context_class.home()
+
+
+def getPrivateInterface(client, machine):
+    ifaces = client.networkInterfaces(machine=machine, kind='private')
+    if not len(ifaces):
+        # TODO(cera) - typed exception
+        raise Exception("No private interface found")
+    return ifaces[0]
+
+
+def printProcedureLines(procedure):
+    for level, msg in procedure.messages():
+        if level == 'error':
+            click.secho(msg, fg='red')
+        else:
+            click.echo(msg)

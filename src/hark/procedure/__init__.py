@@ -3,6 +3,7 @@ import hark.exceptions
 import hark.ssh
 import hark.util
 
+from hark.models.network_interface import NetworkInterface
 from hark.models.port_mapping import PortMapping
 
 
@@ -15,15 +16,29 @@ class Procedure(object):
     A hark procedure encapsulates a set of operations on different hark
     resources.
 
-    A procedure's run() method is a generator which yields lies that can be
-    printed to the console or some other UI.
+    Procedures must all have a run() method to run the procedure. After run()
+    has been called, callers can use messages() to get a list of (level, msg)
+    tuples.
     """
-
     def __init__(self, client):
         self.client = client
+        self._lines = []
+
+    def info(self, msg):
+        self._lines.append(('info', msg))
+
+    def error(self, msg):
+        self._lines.append(('error', msg))
+
+    def messages(self):
+        return self._lines
 
 
 class NewMachine(Procedure):
+    """
+    A procedure for creating a new machine.
+    """
+
     def __init__(self, client, machine):
         Procedure.__init__(self, client)
         self.machine = machine
@@ -35,8 +50,8 @@ class NewMachine(Procedure):
         try:
             image, baseImagePath = self.image()
         except hark.exceptions.ImageNotFound as e:
-            yield 'Image not found locally: %s' % e
-            yield "Run 'hark image pull' to download it first."
+            self.error('Image not found locally: %s' % e)
+            self.error("Run 'hark image pull' to download it first.")
             raise Abort
 
         # Get a driver for this machine
@@ -46,13 +61,16 @@ class NewMachine(Procedure):
             # machine.
             self.saveMachineToDal()
         except hark.exceptions.DuplicateModelException:
-            yield 'Machine already exists with these options:\n\t%s' % \
-                self.machine
+            self.error(
+                'Machine already exists with these options:\n\t%s' %
+                self.machine)
             raise Abort
 
         self.driver().create(baseImagePath)
 
         self.createPortMapping()
+
+        self.configureNetwork()
 
     def image(self):
         """
@@ -60,8 +78,8 @@ class NewMachine(Procedure):
         (image, baseImagePath).
         """
         image = hark.util.findImage(
-                self.client.images(),
-                self.machine['driver'], self.machine['guest'])
+            self.client.images(),
+            self.machine['driver'], self.machine['guest'])
         baseImagePath = self.client.imagePath(image)
         return image, baseImagePath
 
@@ -94,11 +112,14 @@ class NewMachine(Procedure):
         # Save the mapping in the DAL
         self.client.createPortMapping(mapping)
 
+    def configureNetwork(self):
+        # We need to assign a static IP address for the host-only interface.
+        free_addr = self.client.freePrivateIP()
+        iface = NetworkInterface(
+            machine_id=self.machine['machine_id'],
+            kind='private',
+            addr=free_addr)
 
-class MachineSetup(Procedure):
-    def __init__(self, client, machine):
-        Procedure.__init__(self, client)
-        self.machine = machine
+        self.client.createNetworkInterface(iface)
 
-    def run(self):
-        pass
+        self.private_interface = iface

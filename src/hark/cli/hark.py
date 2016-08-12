@@ -3,11 +3,10 @@ import click
 from hark.cli.util import (
     driverOption, guestOption, imageVersionPrompt,
     modelsWithHeaders, promptModelChoice,
-    getMachine, getSSHMapping,
+    getMachine, getSSHMapping, getPrivateInterface,
     loadLocalContext,
+    printProcedureLines
 )
-import hark.exceptions
-import hark.util
 from hark.models.machine import MEMORY_MINIMUM
 from hark.imagestore import DEFAULT_IMAGESTORE_URL
 
@@ -19,7 +18,9 @@ from hark.imagestore import DEFAULT_IMAGESTORE_URL
 def hark_main(ctx, hark_home=None, log_level='INFO'):
     "Hark is a tool to help manage virtual machines"
     from hark.client import LocalClient
+    import hark.exceptions
     import hark.log
+    import hark.util
 
     # before we do anything, check the environment
     try:
@@ -80,10 +81,11 @@ def new(ctx, **kwargs):
     proc = hark.procedure.NewMachine(client, m)
 
     try:
-        for msg in proc.run():
-            click.secho(msg, fg='red')
+        proc.run()
     except hark.procedure.Abort:
         raise click.Abort
+    finally:
+        printProcedureLines(proc)
 
     click.secho('Done.', fg='green')
 
@@ -125,10 +127,16 @@ def setup(client, name):
     import hark.ssh
 
     m = getMachine(client, name)
-    setup_script = hark.guest.guest_config(m['guest']).setup_script(m)
     mapping = getSSHMapping(client, m)
+    private_interface = getPrivateInterface(client, m)
+    setup_script = hark.guest.guest_config(
+        m['guest']).setup_script(m, private_interface)
+    print(setup_script)
+
     click.secho(
         "Running machine setup script for '%s'" % name, fg='green')
+    hark.log.debug(
+        'Running machine setup script: %s', setup_script.replace('\n', '\\n'))
     cmd = hark.ssh.RemoteShellCommand(setup_script, mapping['host_port'])
     cmd.assertRun()
     click.secho('Done.', fg='green')
@@ -188,6 +196,33 @@ def mappings(client):
         "vm mappings: found %d configured port mappings" % len(mappings),
         fg='green')
     click.echo(modelsWithHeaders(mappings))
+
+
+@vm.command()
+@click.pass_obj
+@click.option(
+    "--name", type=str, help="The name of the machine")
+@click.option(
+    "--kind", type=str, required=False, help="Interface type to filter to")
+@click.option(
+    "--fields", type=str, required=False, help="Fields to print")
+def interfaces(client, name, kind=None, fields=None):
+    "Show all network interfaces"
+    m = None
+    if name is not None:
+        m = getMachine(client, name)
+
+    ifaces = client.networkInterfaces(machine=m, kind=kind)
+
+    if fields is not None:
+        # if fields are specified, we will just print them for each model,
+        # tab-delimited, with a model per line.
+        for nif in ifaces:
+            vals = [nif[k] for k in fields.split(',')]
+            click.echo('\t'.join(vals))
+    else:
+        # No field specification, so we just print the models like usual.
+        click.echo(modelsWithHeaders(ifaces))
 
 
 @hark_main.command()

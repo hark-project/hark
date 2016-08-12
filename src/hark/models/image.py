@@ -5,7 +5,7 @@ import hark.models
 
 
 _file_suffixes = {
-        'virtualbox': 'vmdk',
+    'virtualbox': 'vmdk',
 }
 
 

@@ -79,3 +79,11 @@ class UnrecognisedMachineState(Exception):
 
 class BadHarkEnvironment(Exception):
     pass
+
+
+class NetworkFull(Exception):
+    def __init__(self, max_avail):
+        msg = 'No available addresses remaining - ' \
+            'the hark network can only support %d hosts; ' \
+            'try removing some hosts first.'
+        Exception.__init__(self, msg)

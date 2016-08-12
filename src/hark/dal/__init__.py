@@ -2,8 +2,8 @@ import os
 import sqlite3
 
 from hark.exceptions import (
-        InvalidQueryConstraint,
-        DuplicateModelException
+    InvalidQueryConstraint,
+    DuplicateModelException
 )
 import hark.log
 
@@ -46,6 +46,9 @@ class DAL(object):
                 formatted.append(s)
             elif isinstance(v, str):
                 s = "%s = '%s'" % (k, v)
+                formatted.append(s)
+            elif v is None:
+                s = "%s is null" % k
                 formatted.append(s)
             else:
                 raise InvalidQueryConstraint("Unsupported value: %s" % v)

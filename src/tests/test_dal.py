@@ -87,14 +87,31 @@ class TestDALQueries(unittest.TestCase):
         qr, bindings = self.db._insert_query(ins)
 
         expect = r"INSERT INTO bleh \(\w+, \w+\) VALUES \(\?, \?\);"
-        expectBindings = [1, 2]
         assert re.match(expect, qr) is not None
         assert 'answer' in qr
         assert 'boot' in qr
 
-        assert len(expectBindings) == 2
-        assert 1 in expectBindings
-        assert 2 in expectBindings
+        assert len(bindings) == 2
+        assert 1 in bindings
+        assert 2 in bindings
+
+    def test_insert_query_null(self):
+        class mymodel(SQLModel):
+            table = 'bleh'
+            key = 'blop'
+            fields = ['answer', 'boot']
+
+        fields = collections.OrderedDict()
+        fields['answer'] = 1
+        fields['boot'] = None
+        ins = mymodel(**fields)
+        ins.validate()
+
+        qr, bindings = self.db._insert_query(ins)
+
+        assert len(bindings) == 2
+        assert 1 in bindings
+        assert None in bindings
 
 
 class TestDALCRUD(unittest.TestCase):
@@ -124,6 +141,19 @@ class TestDALCRUD(unittest.TestCase):
 
         res = self.dal.read(Machine, constraints={"name": "foo"})
         assert len(res) == 1
+
+    def test_create_read_nulls(self):
+        ins = Machine.new(
+            name='foo', driver=None,
+            guest='bleh', memory_mb=512)
+        self.dal.create(ins)
+
+        constraints = {'driver': None}
+        res = self.dal.read(Machine, constraints=constraints)
+        assert len(res) == 1
+        assert len(ins.keys()) == len(res[0].keys())
+        for k, v in ins.items():
+            assert res[0][k] == v
 
     def test_create_dup(self):
         ins = Machine.new(
