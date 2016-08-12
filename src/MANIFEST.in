@@ -1,5 +1,4 @@
 include requirements.txt
 include requirements-dev.txt
-include requirements-dev-py27.txt
 include hark/dal/schema.sql
 include hark/ssh/keys/*

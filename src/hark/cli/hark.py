@@ -1,5 +1,3 @@
-from __future__ import absolute_import  # 2-3 compat
-
 import click
 
 from hark.cli.util import (

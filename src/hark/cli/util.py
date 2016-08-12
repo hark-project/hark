@@ -1,6 +1,3 @@
-from __future__ import absolute_import  # 2-3 compat
-from __future__ import unicode_literals
-
 import click
 import sys
 
