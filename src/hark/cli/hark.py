@@ -8,6 +8,8 @@ from hark.cli.util import (
     getMachine, getSSHMapping,
     loadLocalContext,
 )
+import hark.exceptions
+import hark.util
 from hark.models.machine import MEMORY_MINIMUM
 from hark.imagestore import DEFAULT_IMAGESTORE_URL
 
@@ -20,6 +22,13 @@ def hark_main(ctx, hark_home=None, log_level='INFO'):
     "Hark is a tool to help manage virtual machines"
     from hark.client import LocalClient
     import hark.log
+
+    # before we do anything, check the environment
+    try:
+        hark.util.checkHarkEnv()
+    except hark.exceptions.BadHarkEnvironment as e:
+        click.secho(str(e), fg='red')
+        raise click.Abort
 
     hark.log.setLevel(log_level)
 

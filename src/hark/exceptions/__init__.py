@@ -75,3 +75,7 @@ class ImageNotFound(Exception):
 
 class UnrecognisedMachineState(Exception):
     pass
+
+
+class BadHarkEnvironment(Exception):
+    pass

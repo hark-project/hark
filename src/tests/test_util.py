@@ -24,3 +24,17 @@ class TestGetFreePort(unittest.TestCase):
         # port should be 1003 and it should have been called four times
         assert p == 1003
         mockGetSockName.asset_has_calls([call(), call(), call(), call()])
+
+
+class TestCheckHarkEnv(unittest.TestCase):
+
+    @patch('getpass.getuser')
+    def test_CheckHarkEnv(self, mockGetUser):
+        # check that a normal user is fine
+        mockGetUser.return_value = 'blah'
+        hark.util.checkHarkEnv()
+
+        # check that root is not fine
+        mockGetUser.return_value = 'root'
+        self.assertRaises(
+            hark.exceptions.BadHarkEnvironment, hark.util.checkHarkEnv)

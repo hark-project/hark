@@ -26,3 +26,14 @@ def findImage(images, driver, guest):
         raise ImageNotFound(
             "no local image for driver '%s' and guest: '%s'" % (driver, guest))
     return im[-1]
+
+
+def checkHarkEnv():
+    """
+    Check that the process and system environment is appropriate for running
+    hark.
+    """
+    import getpass
+
+    if getpass.getuser() == 'root':
+        raise BadHarkEnvironment('hark cannot be run as root, or with sudo')
