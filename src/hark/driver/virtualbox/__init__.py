@@ -3,10 +3,14 @@ import re
 import hark.exceptions
 from hark.lib.command import Command
 import hark.log as log
+import hark.models.config
 import hark.networking
 
 from .. import base
 from .. import status
+
+
+HOST_ONLY_INTERFACE_CFG_KEY = 'virtualbox_host_only_interface'
 
 
 class Driver(base.BaseDriver):
@@ -42,10 +46,18 @@ class Driver(base.BaseDriver):
             vmInfo[k] = v.strip('"')
         return vmInfo
 
-    def create(self, baseImagePath):
+    def create(self, baseImagePath, dal):
+        """
+        Create a new image.
+
+        A DAL instance is needed in case the driver needs to persist some
+        global configuration.
+        """
+        hostonly_interface_name = self.host_only_interface(dal)
+
         log.debug("virtualbox: Creating machine '%s'", self._name())
         log.debug("virtualbox: base image will be '%s'", baseImagePath)
-        cmds = self._createCommands()
+        cmds = self._createCommands(hostonly_interface_name)
         for cmd in cmds:
             self._run(cmd)
         self._attachStorage(baseImagePath)
@@ -105,7 +117,7 @@ class Driver(base.BaseDriver):
             cmd = self._modifyvm('--natpf1', fpm)
             self._run(cmd)
 
-    def _createCommands(self):
+    def _createCommands(self, host_only_interface):
         name = self._name()
         mod = self._modifyvm
         cmds = (
@@ -120,7 +132,7 @@ class Driver(base.BaseDriver):
             mod('--nic1', 'nat'),
             mod(
                 '--nic2', 'hostonly',
-                '--hostonlyadapter2', self._host_only_interface()),
+                '--hostonlyadapter2', host_only_interface),
 
             mod('--nictype1', 'virtio'),
             mod('--nictype2', 'virtio'),
@@ -139,21 +151,28 @@ class Driver(base.BaseDriver):
         c.extend(val)
         return c
 
-    def _host_only_interface(self):
-        cmd = ['list', 'hostonlyifs']
-        res = self._run(cmd)
-        names = [
-            l for l in res.stdout.splitlines()
-            if l.startswith("Name:")
-        ]
-        if len(names) == 0:
-            # Create one
-            name = self._create_host_only_interface()
-            self._assign_host_only_interface_ip(name)
-            return name
-        return names[0].split("Name:")[1].strip()
+    def host_only_interface(self, dal):
+        """
+        Return the name of the hark-dedicated host only interface. Create one
+        if necessary.
+        """
+        interfaceCfg = dal.read(hark.models.config.Config, constraints={
+            'name': HOST_ONLY_INTERFACE_CFG_KEY
+        })
+        if not len(interfaceCfg):
+            # no host-only interface name is recorded by the config - create
+            # one and save it.
+            hostonly_interface_name = self._create_host_only_interface()
+            model = hark.models.config.Config(
+                name=HOST_ONLY_INTERFACE_CFG_KEY,
+                value=hostonly_interface_name)
+            dal.create(model)
+            return hostonly_interface_name
+        else:
+            return interfaceCfg[0]['value']
 
     def _create_host_only_interface(self):
+        "Create a host-only interface and return its name"
         cmd = ['hostonlyif', 'create']
         res = self._run(cmd)
         m = r"Interface '(.+)' was successfully created"
@@ -163,6 +182,7 @@ class Driver(base.BaseDriver):
                 "Could not parse output of cmd %s: '%s'", cmd, res.stdout)
         log.debug(
             'virtualbox: created new host-only interface: %s', matches[0])
+        self._assign_host_only_interface_ip(matches[0])
         return matches[0]
 
     def _assign_host_only_interface_ip(self, name):

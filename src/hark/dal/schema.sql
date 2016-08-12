@@ -23,3 +23,10 @@ CREATE TABLE network_interface (
 
 	PRIMARY KEY (machine_id, kind)
 );
+
+CREATE TABLE config (
+	name  varchar(255),
+	value varchar(255),
+
+	PRIMARY KEY (name, value)
+);

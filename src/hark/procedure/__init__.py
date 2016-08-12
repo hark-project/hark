@@ -66,7 +66,7 @@ class NewMachine(Procedure):
                 self.machine)
             raise Abort
 
-        self.driver().create(baseImagePath)
+        self.driver().create(baseImagePath, self.client.dal())
 
         self.createPortMapping()
 
