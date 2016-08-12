@@ -3,6 +3,7 @@ import re
 import hark.exceptions
 from hark.lib.command import Command
 import hark.log as log
+import hark.networking
 
 from .. import base
 from .. import status
@@ -76,7 +77,7 @@ class Driver(base.BaseDriver):
             return
 
         # remove the last two arguments and try again
-        attachCommand = attachCommand[:len(attachCommand)-2]
+        attachCommand = attachCommand[:len(attachCommand) - 2]
         self._run(attachCommand)
 
     def _name(self):
@@ -108,7 +109,7 @@ class Driver(base.BaseDriver):
         name = self._name()
         mod = self._modifyvm
         cmds = (
-            ['createvm', '--name', name,   '--register'],
+            ['createvm', '--name', name, '--register'],
 
             mod('--ostype', self.guest_config.virtualbox_os_type()),
 
@@ -147,15 +148,30 @@ class Driver(base.BaseDriver):
         ]
         if len(names) == 0:
             # Create one
-            return self._create_host_only_interface()
+            name = self._create_host_only_interface()
+            self._assign_host_only_interface_ip(name)
+            return name
         return names[0].split("Name:")[1].strip()
 
     def _create_host_only_interface(self):
         cmd = ['hostonlyif', 'create']
         res = self._run(cmd)
-        m = r".+\nInterface '(.+)' was successfully created"
+        m = r"Interface '(.+)' was successfully created"
         matches = re.findall(m, res.stdout)
         if len(matches) == 0:
             raise Exception(
                 "Could not parse output of cmd %s: '%s'", cmd, res.stdout)
+        log.debug(
+            'virtualbox: created new host-only interface: %s', matches[0])
         return matches[0]
+
+    def _assign_host_only_interface_ip(self, name):
+        network = hark.networking.Network()
+
+        addr = network.get_host_address()
+
+        cmd = ['hostonlyif', 'ipconfig', name, '--ip', addr]
+        self._run(cmd)
+        log.debug(
+            'virtualbox: assigned addr %s to host-only interface %s',
+            addr, name)

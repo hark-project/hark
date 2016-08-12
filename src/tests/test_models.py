@@ -10,6 +10,7 @@ from hark.models import (
 )
 from hark.models.machine import Machine
 from hark.models.port_mapping import PortMapping
+from hark.models.network_interface import NetworkInterface
 
 
 class TestBaseModel(unittest.TestCase):
@@ -105,3 +106,14 @@ class TestPortMapping(unittest.TestCase):
         pm.validate()
         expect = 'bleh,tcp,127.0.0.1,11,,22'
         assert pm.format_virtualbox() == expect
+
+
+class TestNetworkInterface(unittest.TestCase):
+    def test_network_interface(self):
+        ni = NetworkInterface(
+            machine_id='1234',
+            kind='nat',
+            label='nic1',
+            addr=None)
+
+        ni.validate()

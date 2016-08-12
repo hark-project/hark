@@ -1,6 +1,4 @@
 import click
-from io import BufferedWriter
-from requests import Response
 
 
 def responseToFile(msg, response, f):

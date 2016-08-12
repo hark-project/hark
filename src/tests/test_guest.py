@@ -3,6 +3,7 @@ import unittest
 import hark.exceptions
 import hark.guest
 from hark.models.machine import Machine
+from hark.models.network_interface import NetworkInterface
 
 
 class TestGuest(unittest.TestCase):
@@ -31,11 +32,23 @@ class TestSetupScript(unittest.TestCase):
             memory_mb=512)
         machine.validate()
 
+        network_interface = NetworkInterface(
+            machine_id=machine['machine_id'],
+            kind='private',
+            addr='192.168.168.5')
+        network_interface.validate()
+
         expect = "#!/bin/sh" \
             "\nset -ex" \
-            "\nsudo sh -c \"echo 'blahh' > /etc/hostname\"" \
+            "\n\nsudo sh -c \"echo 'blahh' > /etc/hostname\"" \
             "\nsudo sh -c \"echo 'blahh' > /etc/mailname\"" \
             "\nsudo hostname -F /etc/hostname\n"
 
-        assert hark.guest.guest_config(
-            'Debian-8').setup_script(machine) == expect
+        script = hark.guest.guest_config('Debian-8').setup_script(
+            machine, network_interface)
+
+        assert script.startswith(expect)
+
+        expect = 'iface eth1 inet static\n' \
+            '    address %s' % network_interface['addr']
+        assert expect in script
