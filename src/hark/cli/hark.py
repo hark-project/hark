@@ -191,16 +191,16 @@ def stop(client, name):
 @click.option(
     "--name", type=str,
     prompt="Machine name", help="The name of the machine")
-def destroy(client, name):
-    "Destroy a machine"
+def remove(client, name):
+    "Remove a machine"
     import hark.driver
     import hark.procedure
 
     m = getMachine(client, name)
 
-    click.echo('Destroying machine: ' + name)
+    click.echo('Removing machine: ' + name)
 
-    proc = hark.procedure.DestroyMachine(client, m)
+    proc = hark.procedure.RemoveMachine(client, m)
 
     try:
         proc.run()

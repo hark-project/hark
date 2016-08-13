@@ -80,7 +80,7 @@ class UnrecognisedMachineState(Exception):
 class InvalidStatus(Exception):
     """
     Exception used when the user tries to make an invalid status change to a
-    machine, e.g. destroying it while it's still running, or starting it, while
+    machine, e.g. removing it while it's still running, or starting it, while
     it's started, etc.
     """
     pass

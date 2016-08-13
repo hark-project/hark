@@ -133,7 +133,7 @@ class NewMachine(MachineProcedure):
         self.private_interface = iface
 
 
-class DestroyMachine(MachineProcedure):
+class RemoveMachine(MachineProcedure):
     def run(self):
         from hark.driver.status import PAUSED, RUNNING, STOPPED
         d = self.driver()
@@ -144,8 +144,8 @@ class DestroyMachine(MachineProcedure):
             d.stop()
             d.waitStatus(STOPPED)
 
-        # destroy the VM in the driver
-        d.destroy()
+        # remove the VM in the driver
+        d.remove()
 
         # now delete it from the DB
         self.client.deleteMachine(self.machine)

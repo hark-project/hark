@@ -38,7 +38,7 @@ class BaseDriver(object):
         if s not in valid_statuses:
             fmt = ', '.join(["'%s'" % str(st) for st in valid_statuses])
             raise hark.exceptions.InvalidStatus(
-                "cannot destroy a machine unless it's stopped: "
+                "cannot remove a machine unless it's stopped: "
                 "status is '%s' and needs to be one of (%s)" % (s, fmt))
 
     def waitStatus(self, status, interval_ms=1000):
