@@ -34,14 +34,26 @@ class Procedure(object):
         return self._lines
 
 
-class NewMachine(Procedure):
+class MachineProcedure(Procedure):
+    """
+    Procedures which operate upon machines.
+    """
+    def __init__(self, client, machine):
+        Procedure.__init__(self, client)
+        self.machine = machine
+
+    def driver(self):
+        """Get the driver instance for this machine"""
+        return hark.driver.get_driver(self.machine['driver'], self.machine)
+
+
+class NewMachine(MachineProcedure):
     """
     A procedure for creating a new machine.
     """
 
     def __init__(self, client, machine):
-        Procedure.__init__(self, client)
-        self.machine = machine
+        MachineProcedure.__init__(self, client, machine)
 
         self.ssh_port_mapping = None
         self.private_interface = None
@@ -83,10 +95,6 @@ class NewMachine(Procedure):
         baseImagePath = self.client.imagePath(image)
         return image, baseImagePath
 
-    def driver(self):
-        """Get the driver for the machine to be built"""
-        return hark.driver.get_driver(self.machine['driver'], self.machine)
-
     def saveMachineToDal(self):
         self.client.createMachine(self.machine)
 
@@ -123,3 +131,21 @@ class NewMachine(Procedure):
         self.client.createNetworkInterface(iface)
 
         self.private_interface = iface
+
+
+class DestroyMachine(MachineProcedure):
+    def run(self):
+        from hark.driver.status import PAUSED, RUNNING, STOPPED
+        d = self.driver()
+
+        s = d.status()
+        if s in (PAUSED, RUNNING):
+            self.info("Machine status is '%s' - stopping it first." % s)
+            d.stop()
+            d.waitStatus(STOPPED)
+
+        # destroy the VM in the driver
+        d.destroy()
+
+        # now delete it from the DB
+        self.client.deleteMachine(self.machine)

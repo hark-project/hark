@@ -85,6 +85,31 @@ class DAL(object):
         )
         return (query, bindings)
 
+    def _delete_query(self, ins):
+        constraints = self._key_constraints(ins)
+
+        return self._delete_where_query(ins.__class__, constraints)
+
+    def _delete_where_query(self, cls, constraints):
+        tmpl = "DELETE FROM %s WHERE %s;"
+
+        formatted = self._format_constraints(constraints)
+        cons_str = " AND ".join(formatted)
+
+        return tmpl % (cls.table, cons_str)
+
+    def _key_constraints(self, ins):
+        """
+        Given a model instance, return a constraints dictionary that should
+        uniquely identify it in the database.
+        """
+        if isinstance(ins.key, str):
+            keys = [ins.key]
+        else:
+            keys = ins.key
+
+        return {k: ins[k] for k in keys}
+
     def _setup(self):
         "Set up the schema"
         hark.log.info("Setting up DB schema: %s", self.path)
@@ -110,6 +135,23 @@ class DAL(object):
         cur = self._db.execute(qr)
 
         return [cls.from_sql_row(row) for row in cur]
+
+    def delete(self, ins):
+        """
+        Delete an instance of a model from the DB.
+        """
+        qr = self._delete_query(ins)
+        self._db.execute(qr)
+        self._db.commit()
+
+    def deleteWhere(self, cls, constraints):
+        """
+        Given a class and a set of constraints, delete rows from the table
+        associated with this class.
+        """
+        qr = self._delete_where_query(cls, constraints)
+        self._db.execute(qr)
+        self._db.commit()
 
 
 class InMemoryDAL(DAL):

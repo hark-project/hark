@@ -1,8 +1,5 @@
 import unittest
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
+from unittest.mock import call, patch
 import uuid
 
 import hark.driver
@@ -52,3 +49,37 @@ class TestDriverWrapper(unittest.TestCase):
             cmd = str(uuid.uuid4())
 
         assert Mock2.isAvailable() is False
+
+
+class TestDriverBase(unittest.TestCase):
+
+    @patch('hark.driver.virtualbox.Driver.status')
+    def testAssertStatus(self, mockStatus):
+        mockStatus.return_value = hark.driver.status.STOPPED
+
+        d = hark.driver.virtualbox.Driver({'guest': 'Debian-8'})
+
+        valid = (hark.driver.status.STOPPED,)
+        mockStatus.return_value = hark.driver.status.STOPPED
+        d.assertStatus('blah', *valid)
+
+        valid = (hark.driver.status.STOPPED, hark.driver.status.RUNNING)
+        mockStatus.return_value = hark.driver.status.STOPPED
+        d.assertStatus('blah', *valid)
+
+        valid = (hark.driver.status.RUNNING,)
+        mockStatus.return_value = hark.driver.status.STOPPED
+        self.assertRaises(
+            hark.exceptions.InvalidStatus,
+            d.assertStatus, 'blah', *valid)
+
+    @patch('hark.driver.virtualbox.Driver.status')
+    def testWaitStatus(self, mockStatus):
+        from hark.driver.status import RUNNING, STOPPED
+        mockStatus.side_effect = [
+            STOPPED, STOPPED, RUNNING
+        ]
+        d = hark.driver.virtualbox.Driver({'name': 'hi', 'guest': 'Debian-8'})
+        d.waitStatus(RUNNING, interval_ms=1)
+
+        mockStatus.assert_has_calls([call(), call(), call()])

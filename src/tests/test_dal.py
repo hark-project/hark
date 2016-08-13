@@ -98,7 +98,7 @@ class TestDALQueries(unittest.TestCase):
     def test_insert_query_null(self):
         class mymodel(SQLModel):
             table = 'bleh'
-            key = 'blop'
+            key = 'answer'
             fields = ['answer', 'boot']
 
         fields = collections.OrderedDict()
@@ -112,6 +112,49 @@ class TestDALQueries(unittest.TestCase):
         assert len(bindings) == 2
         assert 1 in bindings
         assert None in bindings
+
+    def test_key_constraints(self):
+        class mymodel(SQLModel):
+            table = 'bleh'
+            key = 'answer'
+            fields = ['answer', 'boot']
+
+        ins = mymodel(answer=1, boot=2)
+        ins.validate()
+        cons = self.db._key_constraints(ins)
+        assert cons == {'answer': 1}
+
+        class mymodel2(SQLModel):
+            table = 'bleh'
+            key = ['answer', 'boot']
+            fields = ['answer', 'boot']
+
+        ins = mymodel2(answer=1, boot=2)
+        ins.validate()
+        cons = self.db._key_constraints(ins)
+        assert cons == {'answer': 1, 'boot': 2}
+
+    def test_delete_query(self):
+        class mymodel(SQLModel):
+            table = 'bleh'
+            key = 'answer'
+            fields = ['answer', 'boot']
+
+        instance = mymodel(answer='hi', boot='fsjdlk')
+        qr = self.db._delete_query(instance)
+        expect = "DELETE FROM bleh WHERE answer = 'hi';"
+        assert qr == expect
+
+        class mymodel2(SQLModel):
+            table = 'bleh'
+            key = ['answer', 'boot']
+            fields = ['answer', 'boot']
+
+        ins = mymodel2(answer='hi', boot='blo')
+        qr = self.db._delete_query(ins)
+        expect = "DELETE FROM bleh WHERE answer = 'hi' AND boot = 'blo';"
+        expect2 = "DELETE FROM bleh WHERE boot = 'blo' AND answer = 'hi';"
+        assert qr == expect or qr == expect2
 
 
 class TestDALCRUD(unittest.TestCase):
@@ -167,3 +210,38 @@ class TestDALCRUD(unittest.TestCase):
         self.assertRaises(
             DuplicateModelException,
             self.dal.create, ins)
+
+    def test_create_delete_read(self):
+        """
+        Test that we can create then delete an object and then not read it.
+        """
+        ins = Machine.new(
+            name='foo', driver='blah',
+            guest='bleh', memory_mb=512)
+        self.dal.create(ins)
+        res = self.dal.read(Machine)
+        assert len(res) == 1
+
+        # delete it and make sure we have no rows
+        self.dal.delete(ins)
+
+        res = self.dal.read(Machine)
+        assert len(res) == 0
+
+        # now make sure we can create 1 things and only delete 1
+        ins = Machine.new(
+            name='foo', driver='blah',
+            guest='bleh', memory_mb=512)
+        ins2 = Machine.new(
+            name='bar', driver='blah',
+            guest='bleh', memory_mb=512)
+        self.dal.create(ins)
+        self.dal.create(ins2)
+
+        res = self.dal.read(Machine)
+        assert len(res) == 2
+
+        self.dal.delete(ins)
+        res = self.dal.read(Machine)
+        assert len(res) == 1
+        assert res[0]['machine_id'] == ins2['machine_id']
