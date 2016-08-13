@@ -51,14 +51,12 @@ Hark only supports python 3.3 and up, because it uses the `yield from` syntax wi
 
 It is tested in dev on these version:
 
-* `2.7.11`
 * `3.3.5`
 * `3.4.3`
 * `3.5.1`
 
 And in travis on these versions:
 
-* `2.7`
 * `3.3`
 * `3.4`
 * `3.5`
@@ -89,7 +87,7 @@ To install tox:
 To install the appropriate versions of the Python interpreter, consider
 [pyenv](https://github.com/yyuu/pyenv):
 
-	$ for ver in 2.7.11 3.3.5 3.4.3 3.5.1; do
+	$ for ver in 3.3.5 3.4.3 3.5.1; do
 		pyenv install $ver
 	done
 
