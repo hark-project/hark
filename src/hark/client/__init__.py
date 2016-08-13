@@ -21,7 +21,7 @@ class LocalClient(object):
         return self.dal().read(Machine)
 
     def createMachine(self, machine):
-        log.debug('Saving machine: %s', machine.json())
+        log.debug('dal: saving machine: %s', machine.json())
         self.dal().create(machine)
 
     def getMachine(self, name):
@@ -33,6 +33,25 @@ class LocalClient(object):
         if len(m) == 0:
             raise hark.exceptions.MachineNotFound
         return m[0]
+
+    def deleteMachine(self, machine):
+        from hark.models.network_interface import NetworkInterface
+        from hark.models.port_mapping import PortMapping
+        mid = machine['machine_id']
+
+        # delete the machine from the DB
+        log.debug('dal: deleting machine: %s', machine.json())
+        self.dal().delete(machine)
+
+        constraints = {'machine_id': mid}
+
+        # delete its network interfaces
+        log.debug('dal: deleting network interfaces for machine: %s' % mid)
+        self.dal().deleteWhere(NetworkInterface, constraints)
+
+        # delete its port ma[[ings
+        log.debug('dal: deleting port mappings for machine: %s' % mid)
+        self.dal().deleteWhere(PortMapping, constraints)
 
     def portMappings(self, name=None, machine_id=None):
         "Get all port mappings"
@@ -46,7 +65,7 @@ class LocalClient(object):
         return self.dal().read(PortMapping, constraints=constraints)
 
     def createPortMapping(self, mapping):
-        log.debug('Saving port mapping: %s', mapping)
+        log.debug('dal: saving port mapping: %s', mapping)
         self.dal().create(mapping)
 
     def networkInterfaces(self, machine=None, kind=None):
@@ -69,7 +88,7 @@ class LocalClient(object):
         return addr
 
     def createNetworkInterface(self, iface):
-        log.debug('Saving network interface: %s', iface)
+        log.debug('dal: saving network interface: %s', iface)
         self.dal().create(iface)
 
     def images(self):

@@ -20,7 +20,7 @@ class TestGetFreePort(unittest.TestCase):
 
         # port should be 1003 and it should have been called four times
         assert p == 1003
-        mockGetSockName.asset_has_calls([call(), call(), call(), call()])
+        mockGetSockName.assert_has_calls([call(), call(), call(), call()])
 
 
 class TestCheckHarkEnv(unittest.TestCase):

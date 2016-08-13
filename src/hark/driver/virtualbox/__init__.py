@@ -111,6 +111,19 @@ class Driver(base.BaseDriver):
         cmd = self._controlvm('acpipowerbutton')
         self._run(cmd)
 
+    def destroy(self):
+        """
+        Destroy the machine: unregister it from virtualbox and remove its
+        backing volume.
+        """
+        # make sure we're powered off first
+        self.assertStatus(
+            "cannot destroy a machine unless it's stopped",
+            status.STOPPED, status.ABORTED)
+
+        cmd = ['unregistervm', self._name(), '--delete']
+        self._run(cmd)
+
     def setPortMappings(self, mappings):
         for pm in mappings:
             fpm = pm.format_virtualbox()

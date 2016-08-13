@@ -77,6 +77,15 @@ class UnrecognisedMachineState(Exception):
     pass
 
 
+class InvalidStatus(Exception):
+    """
+    Exception used when the user tries to make an invalid status change to a
+    machine, e.g. destroying it while it's still running, or starting it, while
+    it's started, etc.
+    """
+    pass
+
+
 class BadHarkEnvironment(Exception):
     def __init__(self, *complaints):
         msg = "hark found %d issues with your environment; they were:\n%s" % (

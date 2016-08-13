@@ -188,6 +188,32 @@ def stop(client, name):
 
 @vm.command()
 @click.pass_obj
+@click.option(
+    "--name", type=str,
+    prompt="Machine name", help="The name of the machine")
+def destroy(client, name):
+    "Destroy a machine"
+    import hark.driver
+    import hark.procedure
+
+    m = getMachine(client, name)
+
+    click.echo('Destroying machine: ' + name)
+
+    proc = hark.procedure.DestroyMachine(client, m)
+
+    try:
+        proc.run()
+    except hark.procedure.Abort:
+        raise click.Abort
+    finally:
+        printProcedureLines(proc)
+
+    click.secho('Done.', fg='green')
+
+
+@vm.command()
+@click.pass_obj
 def mappings(client):
     "Show all configured port mappings"
 
