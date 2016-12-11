@@ -2,8 +2,9 @@
 
 [![Build Status](https://travis-ci.org/hark-project/hark.svg?branch=develop)](https://travis-ci.org/hark-project/hark)
 
-**Please Note**: This project is a work in progress. It's only barely
-functional and unlikely to be useful yet.
+**Please Note**: This project is deprecated. It is being replaced with the
+combination of [harkd](https://github.com/hark-project/harkd) and
+[hark-web](https://github.com/hark-project/hark-web).
 
 ## Intro
 
